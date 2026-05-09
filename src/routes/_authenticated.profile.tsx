@@ -119,8 +119,16 @@ function ProfilePage() {
           <h3 className="font-mono text-sm tracking-tight">Change password</h3>
           <form onSubmit={updatePassword} className="space-y-3">
             <div className="space-y-1.5">
+              <Label htmlFor="currentpw">Current password</Label>
+              <Input id="currentpw" name="currentpw" type="password" autoComplete="current-password" required />
+            </div>
+            <div className="space-y-1.5">
               <Label htmlFor="newpw">New password</Label>
-              <Input id="newpw" name="newpw" type="password" required minLength={6} />
+              <Input id="newpw" name="newpw" type="password" autoComplete="new-password" required minLength={6} />
+            </div>
+            <div className="space-y-1.5">
+              <Label htmlFor="confirmpw">Confirm new password</Label>
+              <Input id="confirmpw" name="confirmpw" type="password" autoComplete="new-password" required minLength={6} />
             </div>
             <Button type="submit">Update password</Button>
           </form>

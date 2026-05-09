@@ -7,6 +7,7 @@ import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
 import { useAuth } from "@/hooks/use-auth";
 import { supabase } from "@/lib/supabase";
+import { updateProfileWithCapabilities } from "@/lib/profile-utils";
 import { toast } from "sonner";
 
 export const Route = createFileRoute("/_authenticated/profile")({
@@ -15,7 +16,7 @@ export const Route = createFileRoute("/_authenticated/profile")({
 });
 
 function ProfilePage() {
-  const { user, profile, refreshProfile } = useAuth();
+  const { user, profile, profileCapabilities, refreshProfile } = useAuth();
   const [displayName, setDisplayName] = useState("");
   const [bio, setBio] = useState("");
   const [avatarUrl, setAvatarUrl] = useState<string | null>(null);
@@ -33,9 +34,11 @@ function ProfilePage() {
   const save = async () => {
     if (!user) return;
     setSaving(true);
-    const { error } = await supabase.from("profiles")
-      .update({ display_name: displayName, bio, avatar_url: avatarUrl })
-      .eq("id", user.id);
+    const { error } = await updateProfileWithCapabilities(
+      user.id,
+      { display_name: displayName, bio, avatar_url: avatarUrl },
+      profileCapabilities,
+    );
     setSaving(false);
     if (error) { toast.error(error.message); return; }
     toast.success("Profile saved");
@@ -108,10 +111,12 @@ function ProfilePage() {
             <Label>Display name</Label>
             <Input value={displayName} onChange={(e) => setDisplayName(e.target.value)} />
           </div>
-          <div className="space-y-1.5">
-            <Label>Bio</Label>
-            <Textarea value={bio} onChange={(e) => setBio(e.target.value)} rows={4} />
-          </div>
+          {profileCapabilities.hasBio ? (
+            <div className="space-y-1.5">
+              <Label>Bio</Label>
+              <Textarea value={bio} onChange={(e) => setBio(e.target.value)} rows={4} />
+            </div>
+          ) : null}
           <Button onClick={save} disabled={saving}>{saving ? "Saving…" : "Save profile"}</Button>
         </Card>
 

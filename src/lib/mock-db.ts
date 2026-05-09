@@ -1,4 +1,5 @@
 import { nanoid } from "nanoid";
+import { supabase } from "./supabase";
 import type {
   AuthUser, Category, Run, RunLog, RunOutput, RunStatus, Script, Worker,
 } from "./types";

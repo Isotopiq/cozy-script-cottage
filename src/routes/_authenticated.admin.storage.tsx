@@ -109,6 +109,11 @@ function AdminStorage() {
           </div>
           <Switch checked={!!form.s3_force_path_style} onCheckedChange={(v) => set("s3_force_path_style", v)} />
         </div>
+        <div className="flex justify-end pt-2">
+          <Button variant="outline" onClick={testS3} disabled={testing}>
+            {testing ? "Testing..." : "Test S3 connection"}
+          </Button>
+        </div>
       </Card>
 
       <div className="flex justify-end">

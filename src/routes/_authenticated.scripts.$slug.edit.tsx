@@ -5,6 +5,7 @@ import { useCategories, useScript, type DBScript } from "@/lib/hooks/use-data";
 import { supabase } from "@/lib/supabase";
 import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
+import { CodeEditor } from "@/components/code-editor";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
@@ -117,10 +118,10 @@ export function ScriptForm({ initial, title, onSubmit }: { initial?: Partial<DBS
         </Card>
         <Card className="space-y-3 p-5">
           <Field label="Source code">
-            <Textarea value={source} onChange={(e) => setSource(e.target.value)} rows={14} className="font-mono text-xs" />
+            <CodeEditor value={source} onChange={setSource} language={language} minHeight="360px" />
           </Field>
           <Field label="Params schema (JSON)">
-            <Textarea value={paramsJson} onChange={(e) => setParamsJson(e.target.value)} rows={10} className="font-mono text-xs" />
+            <CodeEditor value={paramsJson} onChange={setParamsJson} language="json" minHeight="260px" />
             {paramsErr && <p className="mt-1 text-xs text-destructive">{paramsErr}</p>}
           </Field>
         </Card>

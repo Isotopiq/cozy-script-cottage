@@ -6,6 +6,7 @@ import { AppSidebar } from "@/components/app-sidebar";
 import { useAuth } from "@/hooks/use-auth";
 import { useTheme } from "@/hooks/use-theme";
 import { Toaster } from "@/components/ui/sonner";
+import { Footer } from "@/components/footer";
 
 export const Route = createFileRoute("/_authenticated")({
   ssr: false,
@@ -51,6 +52,7 @@ function AuthLayout() {
           <main className="flex-1">
             <Outlet />
           </main>
+          <Footer />
         </div>
         <Toaster />
       </div>

@@ -1,6 +1,7 @@
 import { createFileRoute, Link, useNavigate } from "@tanstack/react-router";
 import { useState } from "react";
-import { Sparkles } from "lucide-react";
+import logoUrl from "@/assets/isotopiq-logo.png";
+import { Footer } from "@/components/footer";
 import { useAuth } from "@/hooks/use-auth";
 import { usePublicSettings } from "@/lib/hooks/use-data";
 import { Button } from "@/components/ui/button";
@@ -38,17 +39,13 @@ function LoginPage() {
   };
 
   return (
-    <div className="grid min-h-screen lg:grid-cols-2">
+    <div className="flex min-h-screen flex-col">
+    <div className="grid flex-1 lg:grid-cols-2">
       <div className="relative hidden overflow-hidden bg-sidebar lg:block">
         <div className="absolute inset-0 bg-grid opacity-30" />
         <div className="absolute inset-0 bg-gradient-to-br from-primary/10 via-transparent to-accent/10" />
         <div className="relative flex h-full flex-col justify-between p-10">
-          <div className="flex items-center gap-2">
-            <div className="flex h-9 w-9 items-center justify-center rounded-md bg-gradient-to-br from-primary to-accent">
-              <Sparkles className="h-4 w-4 text-primary-foreground" />
-            </div>
-            <span className="font-mono text-sm font-semibold">Script Hub</span>
-          </div>
+          <img src={logoUrl} alt="Isotopiq" className="h-9 w-auto" />
           <div>
             <h1 className="font-mono text-4xl leading-tight tracking-tight">
               Run every <span className="text-gradient">Python &amp; R</span> script from one place.
@@ -57,7 +54,7 @@ function LoginPage() {
               A control plane for one-off scripts. CMS, queued runs, live logs, embedded Shiny apps, and an in-browser REPL.
             </p>
           </div>
-          <div className="font-mono text-[11px] text-muted-foreground">v1 · supabase + worker</div>
+          <div className="font-mono text-[11px] text-muted-foreground">Isotopiq · Script Hub</div>
         </div>
       </div>
 

@@ -18,23 +18,19 @@ function AdminWorkers() {
   const { data: workers, reload } = useWorkers();
   const [name, setName] = useState("");
   const [creating, setCreating] = useState(false);
-  const [token, setToken] = useState<string | null>(null);
+  const [workerId, setWorkerId] = useState<string | null>(null);
 
   const create = async () => {
     if (!name) return;
     setCreating(true);
-    // Generate worker token client-side; worker uses it to claim runs.
-    const tok = Array.from(crypto.getRandomValues(new Uint8Array(24)))
-      .map((b) => b.toString(16).padStart(2, "0")).join("");
     const { data, error } = await supabase.from("workers").insert({
       name,
       status: "offline",
       capabilities: { python: true, r: true, bash: true },
-      token: tok,
     }).select().single();
     setCreating(false);
     if (error) return toast.error(error.message);
-    setToken(`${data.id}:${tok}`);
+    setWorkerId(data.id);
     setName("");
     reload();
   };

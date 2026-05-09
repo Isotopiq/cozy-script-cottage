@@ -13,6 +13,7 @@
   },
   "dependencies": {
     "@cloudflare/vite-plugin": "^1.25.5",
+    "@hcaptcha/react-hcaptcha": "^2.0.2",
     "@hookform/resolvers": "^5.2.2",
     "@radix-ui/react-accordion": "^1.2.12",
     "@radix-ui/react-alert-dialog": "^1.1.15",
@@ -48,6 +49,7 @@
     "@tanstack/router-plugin": "^1.167.28",
     "@xterm/addon-fit": "^0.11.0",
     "@xterm/xterm": "^6.0.0",
+    "aws4fetch": "^1.0.20",
     "class-variance-authority": "^0.7.1",
     "clsx": "^2.1.1",
     "cmdk": "^1.1.1",

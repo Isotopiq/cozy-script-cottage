@@ -17,14 +17,16 @@ export const Route = createFileRoute("/_authenticated/admin/workers")({
 function AdminWorkers() {
   const { data: workers, reload } = useWorkers();
   const [name, setName] = useState("");
+  const [baseUrl, setBaseUrl] = useState("");
   const [creating, setCreating] = useState(false);
   const [workerId, setWorkerId] = useState<string | null>(null);
 
   const create = async () => {
-    if (!name) return;
+    if (!name || !baseUrl) return;
     setCreating(true);
     const { data, error } = await supabase.from("workers").insert({
       name,
+      base_url: baseUrl,
       status: "offline",
       capabilities: { python: true, r: true, bash: true },
     }).select().single();
@@ -32,6 +34,7 @@ function AdminWorkers() {
     if (error) return toast.error(error.message);
     setWorkerId(data.id);
     setName("");
+    setBaseUrl("");
     reload();
   };
 
@@ -47,13 +50,18 @@ function AdminWorkers() {
     <div className="space-y-4">
       <Card className="p-5">
         <h3 className="mb-3 font-mono text-sm">Register worker</h3>
-        <div className="flex gap-3 items-end">
-          <div className="flex-1 space-y-1">
+        <div className="grid gap-3 sm:grid-cols-[1fr_1.4fr_auto] items-end">
+          <div className="space-y-1">
             <Label className="text-xs">Worker name</Label>
             <Input value={name} onChange={(e) => setName(e.target.value)} placeholder="vps-worker-1" />
           </div>
-          <Button onClick={create} disabled={creating || !name}>{creating ? "Creating..." : "Register"}</Button>
+          <div className="space-y-1">
+            <Label className="text-xs">Base URL</Label>
+            <Input value={baseUrl} onChange={(e) => setBaseUrl(e.target.value)} placeholder="https://worker.example.com" />
+          </div>
+          <Button onClick={create} disabled={creating || !name || !baseUrl}>{creating ? "Creating..." : "Register"}</Button>
         </div>
+        <p className="mt-2 text-xs text-muted-foreground">Base URL is the public address of the VPS running the worker. It can be a placeholder (e.g. <code className="font-mono">https://pending</code>) if the worker only polls — it just must not be empty.</p>
         {workerId && (
           <div className="mt-4 rounded-md border border-success/40 bg-success/10 p-3 text-xs">
             <p className="font-mono mb-2 font-semibold">Worker registered. Use this WORKER_ID on your VPS:</p>

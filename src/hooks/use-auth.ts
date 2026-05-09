@@ -21,6 +21,12 @@ export function useAuth() {
 
   const refresh = useCallback(async (u: User | null) => {
     if (!u) { setProfile(null); setProfileCapabilities({ hasAvatarUrl: false, hasBio: false }); setIsAdmin(false); return; }
+    // Ensure a profile row exists (covers users created before the trigger was installed).
+    await supabase.from("profiles").upsert({
+      id: u.id,
+      email: u.email ?? null,
+      display_name: (u.user_metadata as any)?.name ?? (u.email ? u.email.split("@")[0] : null),
+    }, { onConflict: "id", ignoreDuplicates: true });
     const [{ profile: prof, capabilities }, { data: roles }] = await Promise.all([
       getProfileWithCapabilities(u.id),
       supabase.from("user_roles").select("role").eq("user_id", u.id),

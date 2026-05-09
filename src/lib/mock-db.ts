@@ -348,3 +348,44 @@ function mockOutput(script: Script): RunOutput {
       return { type: "text", text: "Run completed successfully.\nProcessed 1,243 records in 2.31s." };
   }
 }
+
+// ---------- Supabase auth bridge ----------
+async function syncAuth() {
+  const { data } = await supabase.auth.getUser();
+  const u = data.user;
+  if (!u) {
+    store.auth = null;
+    persist();
+    changes.emit("auth");
+    return;
+  }
+  // Look up role; default to viewer. Falls back gracefully if table not yet created.
+  let role: "admin" | "viewer" = "viewer";
+  try {
+    const { data: rows } = await supabase
+      .from("user_roles")
+      .select("role")
+      .eq("user_id", u.id);
+    if (rows?.some((r) => r.role === "admin")) role = "admin";
+    else if (rows && rows.length > 0) role = "viewer";
+  } catch {
+    /* schema not deployed yet — keep default */
+  }
+  const meta = (u.user_metadata ?? {}) as { name?: string };
+  store.auth = {
+    id: u.id,
+    email: u.email ?? "",
+    name: meta.name || (u.email ?? "").split("@")[0] || "user",
+    role,
+  };
+  persist();
+  changes.emit("auth");
+}
+
+if (typeof window !== "undefined") {
+  // initial load + reactive updates
+  void syncAuth();
+  supabase.auth.onAuthStateChange(() => {
+    void syncAuth();
+  });
+}

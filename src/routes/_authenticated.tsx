@@ -14,6 +14,7 @@ export const Route = createFileRoute("/_authenticated")({
 
 function AuthLayout() {
   const { user } = useAuth();
+  const { theme, toggle } = useTheme();
   const nav = useNavigate();
   const path = useRouterState({ select: (r) => r.location.pathname });
   useEffect(() => {

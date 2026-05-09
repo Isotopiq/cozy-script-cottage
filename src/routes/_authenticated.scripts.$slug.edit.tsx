@@ -1,14 +1,15 @@
 import { createFileRoute, useNavigate, useParams } from "@tanstack/react-router";
 import { useState } from "react";
 import { Save } from "lucide-react";
-import { db } from "@/lib/mock-db";
-import type { Language, OutputType, ParamField, Script } from "@/lib/types";
+import { useCategories, useScript, type DBScript } from "@/lib/hooks/use-data";
+import { supabase } from "@/lib/supabase";
 import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
+import { toast } from "sonner";
 
 export const Route = createFileRoute("/_authenticated/scripts/$slug/edit")({
   head: () => ({ meta: [{ title: "Edit script — Script Hub" }] }),
@@ -17,38 +18,49 @@ export const Route = createFileRoute("/_authenticated/scripts/$slug/edit")({
 
 function EditScript() {
   const { slug } = useParams({ from: "/_authenticated/scripts/$slug/edit" });
-  const existing = db.scripts.get(slug);
+  const { data: existing, loading } = useScript(slug);
   const nav = useNavigate();
+  if (loading) return <div className="p-10 text-sm text-muted-foreground">Loading…</div>;
   if (!existing) return <div className="p-10 text-sm text-muted-foreground">Script not found.</div>;
-  return <ScriptForm initial={existing} onSubmit={(patch) => { db.scripts.update(existing.id, patch); nav({ to: "/scripts/$slug", params: { slug: patch.slug ?? existing.slug } }); }} title="Edit script" />;
+  return (
+    <ScriptForm
+      initial={existing}
+      title="Edit script"
+      onSubmit={async (patch) => {
+        const { error } = await supabase.from("scripts").update(patch).eq("id", existing.id);
+        if (error) { toast.error(error.message); return; }
+        nav({ to: "/scripts/$slug", params: { slug: patch.slug ?? existing.slug } });
+      }}
+    />
+  );
 }
 
-export function ScriptForm({ initial, title, onSubmit }: { initial?: Partial<Script>; title: string; onSubmit: (s: Partial<Script>) => void }) {
-  const cats = db.categories.list();
+export function ScriptForm({ initial, title, onSubmit }: { initial?: Partial<DBScript>; title: string; onSubmit: (s: Partial<DBScript>) => Promise<void> | void }) {
+  const { data: cats } = useCategories();
   const [name, setName] = useState(initial?.name ?? "");
   const [slug, setSlug] = useState(initial?.slug ?? "");
   const [description, setDescription] = useState(initial?.description ?? "");
-  const [language, setLanguage] = useState<Language>(initial?.language ?? "python");
-  const [categoryId, setCategoryId] = useState(initial?.categoryId ?? cats[0]?.id ?? "");
-  const [outputType, setOutputType] = useState<OutputType>(initial?.outputType ?? "text");
+  const [language, setLanguage] = useState<DBScript["language"]>(initial?.language ?? "python");
+  const [categoryId, setCategoryId] = useState(initial?.category_id ?? "");
+  const [outputType, setOutputType] = useState<DBScript["output_type"]>(initial?.output_type ?? "text");
   const [packages, setPackages] = useState((initial?.packages ?? []).join(", "));
   const [tags, setTags] = useState((initial?.tags ?? []).join(", "));
-  const [timeoutS, setTimeoutS] = useState(initial?.timeoutS ?? 60);
+  const [timeoutS, setTimeoutS] = useState(initial?.timeout_s ?? 60);
   const [source, setSource] = useState(initial?.source ?? "");
-  const [paramsJson, setParamsJson] = useState(JSON.stringify(initial?.paramsSchema ?? [], null, 2));
+  const [paramsJson, setParamsJson] = useState(JSON.stringify(initial?.params_schema ?? [], null, 2));
   const [paramsErr, setParamsErr] = useState<string | null>(null);
 
   const submit = (e: React.FormEvent) => {
     e.preventDefault();
-    let parsed: ParamField[] = [];
+    let parsed: any[] = [];
     try { parsed = JSON.parse(paramsJson); setParamsErr(null); }
     catch (err) { setParamsErr((err as Error).message); return; }
     onSubmit({
       name, slug: slug || name.toLowerCase().replace(/\s+/g, "-"), description,
-      language, categoryId, outputType,
+      language, category_id: categoryId || null, output_type: outputType,
       packages: packages.split(",").map((p) => p.trim()).filter(Boolean),
       tags: tags.split(",").map((t) => t.trim()).filter(Boolean),
-      timeoutS, source, paramsSchema: parsed,
+      timeout_s: timeoutS, source, params_schema: parsed,
     });
   };
 
@@ -70,7 +82,7 @@ export function ScriptForm({ initial, title, onSubmit }: { initial?: Partial<Scr
           <Field label="Description"><Textarea value={description} onChange={(e) => setDescription(e.target.value)} rows={3} /></Field>
           <div className="grid grid-cols-2 gap-3">
             <Field label="Language">
-              <Select value={language} onValueChange={(v) => setLanguage(v as Language)}>
+              <Select value={language} onValueChange={(v) => setLanguage(v as any)}>
                 <SelectTrigger><SelectValue /></SelectTrigger>
                 <SelectContent>
                   <SelectItem value="python">Python</SelectItem>
@@ -81,14 +93,14 @@ export function ScriptForm({ initial, title, onSubmit }: { initial?: Partial<Scr
             </Field>
             <Field label="Category">
               <Select value={categoryId} onValueChange={setCategoryId}>
-                <SelectTrigger><SelectValue /></SelectTrigger>
+                <SelectTrigger><SelectValue placeholder="Select…" /></SelectTrigger>
                 <SelectContent>{cats.map((c) => <SelectItem key={c.id} value={c.id}>{c.name}</SelectItem>)}</SelectContent>
               </Select>
             </Field>
           </div>
           <div className="grid grid-cols-2 gap-3">
             <Field label="Output type">
-              <Select value={outputType} onValueChange={(v) => setOutputType(v as OutputType)}>
+              <Select value={outputType} onValueChange={(v) => setOutputType(v as any)}>
                 <SelectTrigger><SelectValue /></SelectTrigger>
                 <SelectContent>
                   <SelectItem value="text">Text</SelectItem>

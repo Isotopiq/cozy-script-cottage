@@ -1,36 +1,66 @@
-import { useEffect, useState } from "react";
-import { db } from "@/lib/mock-db";
-import type { AuthUser } from "@/lib/types";
+import { useEffect, useState, useCallback } from "react";
+import { supabase } from "@/lib/supabase";
+import type { Session, User } from "@supabase/supabase-js";
 
-export function useAuth() {
-  const [user, setUser] = useState<AuthUser | null>(() => db.auth.current());
-  useEffect(() => {
-    const off = db.auth.onChange(setUser);
-    return () => { off(); };
-  }, []);
-  return {
-    user,
-    isAdmin: user?.role === "admin",
-    signIn: db.auth.signIn,
-    signUp: db.auth.signUp,
-    signOut: db.auth.signOut,
-  };
+export interface AuthProfile {
+  id: string;
+  email: string;
+  display_name: string | null;
+  avatar_url: string | null;
+  bio: string | null;
 }
 
-export function useStoreVersion(key: "scripts" | "runs" | "categories" | "workers") {
-  const [, force] = useState(0);
+export function useAuth() {
+  const [session, setSession] = useState<Session | null>(null);
+  const [user, setUser] = useState<User | null>(null);
+  const [profile, setProfile] = useState<AuthProfile | null>(null);
+  const [isAdmin, setIsAdmin] = useState(false);
+  const [loading, setLoading] = useState(true);
+
+  const refresh = useCallback(async (u: User | null) => {
+    if (!u) { setProfile(null); setIsAdmin(false); return; }
+    const [{ data: prof }, { data: roles }] = await Promise.all([
+      supabase.from("profiles").select("id,email,display_name,avatar_url,bio").eq("id", u.id).maybeSingle(),
+      supabase.from("user_roles").select("role").eq("user_id", u.id),
+    ]);
+    setProfile((prof as AuthProfile) ?? null);
+    setIsAdmin(!!roles?.some((r: any) => r.role === "admin"));
+  }, []);
+
   useEffect(() => {
-    // re-render whenever any store change for this key happens
-    const id = setInterval(() => force((v) => v + 1), 0);
-    clearInterval(id);
-    let mounted = true;
-    const handler = () => mounted && force((v) => v + 1);
-    // Simple subscribe via runs.onAny and a polling fallback
-    if (key === "runs") {
-      const off = db.runs.onAny(handler);
-      return () => { mounted = false; off(); };
-    }
-    const t = setInterval(handler, 500);
-    return () => { mounted = false; clearInterval(t); };
-  }, [key]);
+    const { data: sub } = supabase.auth.onAuthStateChange((_e, s) => {
+      setSession(s);
+      setUser(s?.user ?? null);
+      // defer to avoid deadlocks
+      setTimeout(() => refresh(s?.user ?? null), 0);
+    });
+    supabase.auth.getSession().then(({ data }) => {
+      setSession(data.session);
+      setUser(data.session?.user ?? null);
+      refresh(data.session?.user ?? null).finally(() => setLoading(false));
+    });
+    return () => sub.subscription.unsubscribe();
+  }, [refresh]);
+
+  return {
+    session, user, profile, isAdmin, loading,
+    signIn: async (email: string, password: string, captchaToken?: string) => {
+      const { error } = await supabase.auth.signInWithPassword({ email, password, options: { captchaToken } as any });
+      if (error) throw error;
+    },
+    signUp: async (email: string, password: string, displayName: string, captchaToken?: string) => {
+      const { data, error } = await supabase.auth.signUp({
+        email, password,
+        options: {
+          emailRedirectTo: typeof window !== "undefined" ? window.location.origin : undefined,
+          data: { name: displayName },
+          captchaToken,
+        } as any,
+      });
+      if (error) throw error;
+      return data;
+    },
+    signOut: async () => { await supabase.auth.signOut(); },
+    refreshProfile: () => refresh(user),
+  };
 }

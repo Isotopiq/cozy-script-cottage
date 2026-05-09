@@ -13,13 +13,14 @@ export const Route = createFileRoute("/_authenticated")({
 });
 
 function AuthLayout() {
-  const { user } = useAuth();
+  const { user, loading } = useAuth();
   const { theme, toggle } = useTheme();
   const nav = useNavigate();
   const path = useRouterState({ select: (r) => r.location.pathname });
   useEffect(() => {
-    if (!user) nav({ to: "/login" });
-  }, [user, nav]);
+    if (!loading && !user) nav({ to: "/login" });
+  }, [user, loading, nav]);
+  if (loading) return <div className="flex min-h-screen items-center justify-center text-sm text-muted-foreground">Loading…</div>;
   if (!user) return null;
 
   const crumbs = path.split("/").filter(Boolean);
@@ -38,10 +39,6 @@ function AuthLayout() {
                   <span>/</span><span className="text-foreground">{c}</span>
                 </span>
               ))}
-            </div>
-            <div className="hidden items-center gap-2 rounded-md border border-border bg-card px-2.5 py-1 text-[11px] font-mono text-muted-foreground md:flex">
-              <span className="h-1.5 w-1.5 rounded-full bg-success" />
-              supabase connected — scripts/runs still mock until worker is wired
             </div>
             <button
               onClick={toggle}

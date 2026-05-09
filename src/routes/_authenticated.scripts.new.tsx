@@ -1,6 +1,8 @@
 import { createFileRoute, useNavigate } from "@tanstack/react-router";
-import { db } from "@/lib/mock-db";
+import { useAuth } from "@/hooks/use-auth";
+import { supabase } from "@/lib/supabase";
 import { ScriptForm } from "./_authenticated.scripts.$slug.edit";
+import { toast } from "sonner";
 
 export const Route = createFileRoute("/_authenticated/scripts/new")({
   head: () => ({ meta: [{ title: "New script — Script Hub" }] }),
@@ -9,24 +11,28 @@ export const Route = createFileRoute("/_authenticated/scripts/new")({
 
 function NewScript() {
   const nav = useNavigate();
+  const { user, isAdmin } = useAuth();
+  if (!isAdmin) return <div className="p-10 text-sm text-muted-foreground">Only admins can create scripts.</div>;
   return (
     <ScriptForm
       title="New script"
-      onSubmit={(s) => {
-        const created = db.scripts.create({
+      onSubmit={async (s) => {
+        const { data, error } = await supabase.from("scripts").insert({
           name: s.name ?? "Untitled",
-          slug: s.slug ?? "untitled",
+          slug: s.slug ?? "untitled-" + Math.random().toString(36).slice(2, 7),
           description: s.description ?? "",
           language: s.language ?? "python",
-          categoryId: s.categoryId ?? db.categories.list()[0]?.id ?? "",
+          category_id: s.category_id ?? null,
           source: s.source ?? "",
-          paramsSchema: s.paramsSchema ?? [],
-          outputType: s.outputType ?? "text",
+          params_schema: s.params_schema ?? [],
+          output_type: s.output_type ?? "text",
           packages: s.packages ?? [],
           tags: s.tags ?? [],
-          timeoutS: s.timeoutS ?? 60,
-        });
-        nav({ to: "/scripts/$slug", params: { slug: created.slug } });
+          timeout_s: s.timeout_s ?? 60,
+          created_by: user!.id,
+        }).select().single();
+        if (error) { toast.error(error.message); return; }
+        nav({ to: "/scripts/$slug", params: { slug: data.slug } });
       }}
     />
   );

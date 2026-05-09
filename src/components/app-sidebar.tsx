@@ -2,6 +2,7 @@ import { Link, useRouterState } from "@tanstack/react-router";
 import {
   LayoutDashboard, FileCode2, FolderTree, History,
   TerminalSquare, ServerCog, Settings, LogOut, Sparkles,
+  Shield, User as UserIcon,
 } from "lucide-react";
 import {
   Sidebar, SidebarContent, SidebarGroup, SidebarGroupContent, SidebarGroupLabel,
@@ -19,15 +20,24 @@ const main = [
 const tools = [
   { title: "REPL", url: "/repl", icon: TerminalSquare },
   { title: "Workers", url: "/workers", icon: ServerCog },
+  { title: "Profile", url: "/profile", icon: UserIcon },
   { title: "Settings", url: "/settings", icon: Settings },
+];
+const adminItems = [
+  { title: "Admin", url: "/admin", icon: Shield },
+  { title: "Users", url: "/admin/users", icon: UserIcon },
+  { title: "Invites", url: "/admin/invites", icon: FolderTree },
+  { title: "Storage", url: "/admin/storage", icon: ServerCog },
+  { title: "Workers", url: "/admin/workers", icon: ServerCog },
 ];
 
 export function AppSidebar() {
   const { state } = useSidebar();
   const collapsed = state === "collapsed";
   const path = useRouterState({ select: (r) => r.location.pathname });
-  const { user, signOut } = useAuth();
-  const isActive = (u: string) => (u === "/" ? path === "/" : path.startsWith(u));
+  const { user, profile, isAdmin, signOut } = useAuth();
+  const isActive = (u: string) => (u === "/" ? path === "/" : path === u || path.startsWith(u + "/"));
+  const initials = (profile?.display_name || user?.email || "U").slice(0, 2).toUpperCase();
 
   return (
     <Sidebar collapsible="icon">
@@ -79,17 +89,38 @@ export function AppSidebar() {
             </SidebarMenu>
           </SidebarGroupContent>
         </SidebarGroup>
+        {isAdmin && (
+          <SidebarGroup>
+            <SidebarGroupLabel>Admin</SidebarGroupLabel>
+            <SidebarGroupContent>
+              <SidebarMenu>
+                {adminItems.map((item) => (
+                  <SidebarMenuItem key={item.title}>
+                    <SidebarMenuButton asChild isActive={isActive(item.url)}>
+                      <Link to={item.url}>
+                        <item.icon className="h-4 w-4" />
+                        <span>{item.title}</span>
+                      </Link>
+                    </SidebarMenuButton>
+                  </SidebarMenuItem>
+                ))}
+              </SidebarMenu>
+            </SidebarGroupContent>
+          </SidebarGroup>
+        )}
       </SidebarContent>
       <SidebarFooter className="border-t border-sidebar-border">
         {user && (
           <div className="flex items-center gap-2 px-2 py-2">
-            <div className="flex h-7 w-7 items-center justify-center rounded-full bg-secondary font-mono text-[11px]">
-              {user.name.slice(0, 2).toUpperCase()}
-            </div>
+            {profile?.avatar_url ? (
+              <img src={profile.avatar_url} className="h-7 w-7 rounded-full object-cover" alt="" />
+            ) : (
+              <div className="flex h-7 w-7 items-center justify-center rounded-full bg-secondary font-mono text-[11px]">{initials}</div>
+            )}
             {!collapsed && (
               <div className="flex flex-1 flex-col overflow-hidden">
-                <span className="truncate text-xs font-medium">{user.name}</span>
-                <span className="truncate text-[10px] text-muted-foreground">{user.role}</span>
+                <span className="truncate text-xs font-medium">{profile?.display_name || user.email}</span>
+                <span className="truncate text-[10px] text-muted-foreground">{isAdmin ? "admin" : "viewer"}</span>
               </div>
             )}
             <button

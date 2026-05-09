@@ -20,6 +20,17 @@ interface UserRow {
   roles: string[];
 }
 
+type RoleRow = {
+  user_id: string;
+  role: string;
+};
+
+type ProfileRow = Omit<UserRow, "roles">;
+
+type UserMetadata = {
+  name?: string;
+};
+
 function AdminUsers() {
   const { user, profile } = useAuth();
   const [rows, setRows] = useState<UserRow[]>([]);
@@ -28,25 +39,39 @@ function AdminUsers() {
   const reload = useCallback(async () => {
     setLoading(true);
     const [{ data: profs }, { data: roles }] = await Promise.all([
-      supabase.from("profiles").select("id,email,display_name,disabled,created_at").order("created_at", { ascending: false }),
+      supabase
+        .from("profiles")
+        .select("id,email,display_name,disabled,created_at")
+        .order("created_at", { ascending: false }),
       supabase.from("user_roles").select("user_id,role"),
     ]);
     const byUser = new Map<string, string[]>();
-    (roles ?? []).forEach((r: any) => {
+    (roles as RoleRow[] | null ?? []).forEach((r) => {
       const arr = byUser.get(r.user_id) ?? [];
       arr.push(r.role);
       byUser.set(r.user_id, arr);
     });
-    const mapped = (profs ?? []).map((p: any) => ({ ...p, roles: byUser.get(p.id) ?? [] }));
+
+    const mapped = ((profs as ProfileRow[] | null) ?? []).map((p) => ({
+      ...p,
+      roles: byUser.get(p.id) ?? [],
+    }));
     const hasCurrentUser = !!user && mapped.some((row) => row.id === user.id);
-    const fallbackCurrentUser = user && !hasCurrentUser ? [{
-      id: user.id,
-      email: user.email ?? null,
-      display_name: profile?.display_name ?? ((user.user_metadata as any)?.name ?? (user.email ? user.email.split("@")[0] : null)),
-      disabled: false,
-      created_at: new Date().toISOString(),
-      roles: byUser.get(user.id) ?? [],
-    }] : [];
+    const metadata = (user?.user_metadata ?? {}) as UserMetadata;
+    const fallbackCurrentUser =
+      user && !hasCurrentUser
+        ? [
+            {
+              id: user.id,
+              email: user.email ?? null,
+              display_name:
+                profile?.display_name ?? metadata.name ?? (user.email ? user.email.split("@")[0] : null),
+              disabled: false,
+              created_at: new Date().toISOString(),
+              roles: byUser.get(user.id) ?? [],
+            },
+          ]
+        : [];
 
     setRows([...fallbackCurrentUser, ...mapped]);
     setLoading(false);

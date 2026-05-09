@@ -9,6 +9,10 @@ import { supabase } from "@/lib/supabase";
 import { toast } from "sonner";
 import { Trash2 } from "lucide-react";
 
+type WorkerInsertResult = {
+  id: string;
+};
+
 function generateWorkerSecret(length = 40) {
   const alphabet = "ABCDEFGHJKLMNPQRSTUVWXYZabcdefghijkmnopqrstuvwxyz23456789";
   const bytes = crypto.getRandomValues(new Uint8Array(length));
@@ -31,21 +35,29 @@ function AdminWorkers() {
     if (!name || !baseUrl) return;
     setCreating(true);
     const workerSecret = generateWorkerSecret();
-    let { data, error } = await supabase.from("workers").insert({
-      name,
-      base_url: baseUrl,
-      status: "offline",
-      capabilities: { python: true, r: true, bash: true },
-      secret_hash: workerSecret,
-    } as any).select().single();
-
-    if (error && /column\s+"secret_hash"/i.test(error.message)) {
-      ({ data, error } = await supabase.from("workers").insert({
+    let { data, error } = await supabase
+      .from("workers")
+      .insert({
         name,
         base_url: baseUrl,
         status: "offline",
         capabilities: { python: true, r: true, bash: true },
-      } as any).select().single());
+        secret_hash: workerSecret,
+      } as never)
+      .select()
+      .single<WorkerInsertResult>();
+
+    if (error && /column\s+"secret_hash"/i.test(error.message)) {
+      ({ data, error } = await supabase
+        .from("workers")
+        .insert({
+          name,
+          base_url: baseUrl,
+          status: "offline",
+          capabilities: { python: true, r: true, bash: true },
+        } as never)
+        .select()
+        .single<WorkerInsertResult>());
     }
 
     setCreating(false);

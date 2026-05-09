@@ -1,3 +1,4 @@
+import { useEffect, useState } from "react";
 import CodeMirror from "@uiw/react-codemirror";
 import { json as jsonLanguage } from "@codemirror/lang-json";
 import { python } from "@codemirror/lang-python";
@@ -33,6 +34,23 @@ export function CodeEditor({
   language: EditorLanguage;
   minHeight?: string;
 }) {
+  const [mounted, setMounted] = useState(false);
+
+  useEffect(() => {
+    setMounted(true);
+  }, []);
+
+  if (!mounted) {
+    return (
+      <textarea
+        value={value}
+        onChange={(event) => onChange(event.target.value)}
+        className="min-h-[320px] w-full rounded-md border border-border bg-background px-3 py-2 font-mono text-sm"
+        style={{ minHeight }}
+      />
+    );
+  }
+
   return (
     <div className="overflow-hidden rounded-md border border-border bg-background">
       <CodeMirror

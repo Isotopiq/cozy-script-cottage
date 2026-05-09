@@ -43,12 +43,10 @@ export function AppSidebar() {
   return (
     <Sidebar collapsible="icon">
       <SidebarHeader className="border-b border-sidebar-border">
-        <Link to="/" className="flex items-center gap-2 px-2 py-2">
-          {collapsed ? (
-            <img src={logoUrl} alt="Isotopiq" className="h-8 w-8 object-contain object-left" style={{ objectPosition: "0% 50%", width: "32px", clipPath: "inset(0 75% 0 0)", marginLeft: "0", transform: "scale(4)", transformOrigin: "left center" }} />
-          ) : (
-            <img src={logoUrl} alt="Isotopiq" className="h-7 w-auto" />
-          )}
+        <Link to="/" className="flex items-center px-2 py-2 overflow-hidden">
+          <div className="overflow-hidden flex-shrink-0" style={{ width: collapsed ? "28px" : "auto", height: "28px" }}>
+            <img src={logoUrl} alt="Isotopiq" className={collapsed ? "h-7 w-auto max-w-none" : "h-7 w-auto"} style={collapsed ? { transform: "translateX(0)" } : undefined} />
+          </div>
         </Link>
       </SidebarHeader>
       <SidebarContent>

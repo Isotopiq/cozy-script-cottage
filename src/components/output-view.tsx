@@ -1,28 +1,31 @@
-import type { Run } from "@/lib/types";
+import type { DBRun } from "@/lib/hooks/use-data";
 import { LineChart, Line, BarChart, Bar, XAxis, YAxis, ResponsiveContainer, Tooltip } from "recharts";
 
-export function OutputView({ run }: { run: Run }) {
-  if (run.status === "running") {
+export function OutputView({ run }: { run: DBRun }) {
+  if (run.status === "queued" || run.status === "running") {
     return <p className="font-mono text-xs text-muted-foreground">Run in progress — output appears here once it completes.</p>;
   }
   if (run.status === "failed") {
-    return <p className="font-mono text-xs text-destructive">Run failed. See the logs tab for details.</p>;
+    return (
+      <div className="space-y-2">
+        <p className="font-mono text-xs text-destructive">Run failed.</p>
+        {run.error_message && <pre className="whitespace-pre-wrap font-mono text-xs text-muted-foreground">{run.error_message}</pre>}
+      </div>
+    );
   }
   if (!run.output) return <p className="font-mono text-xs text-muted-foreground">No output captured.</p>;
 
   const o = run.output;
-  if (o.type === "text") {
-    return <pre className="whitespace-pre-wrap font-mono text-xs text-foreground">{o.text}</pre>;
-  }
+  if (o.type === "text") return <pre className="whitespace-pre-wrap font-mono text-xs text-foreground">{o.text}</pre>;
   if (o.type === "table" && o.table) {
     return (
       <div className="overflow-auto rounded-md border border-border">
         <table className="w-full text-sm">
           <thead className="bg-secondary/40">
-            <tr>{o.table.columns.map((c) => <th key={c} className="px-3 py-2 text-left font-mono text-[11px] uppercase tracking-wider text-muted-foreground">{c}</th>)}</tr>
+            <tr>{o.table.columns.map((c: string) => <th key={c} className="px-3 py-2 text-left font-mono text-[11px] uppercase tracking-wider text-muted-foreground">{c}</th>)}</tr>
           </thead>
           <tbody>
-            {o.table.rows.map((r, i) => (
+            {o.table.rows.map((r: any[], i: number) => (
               <tr key={i} className="border-t border-border">
                 {r.map((cell, j) => <td key={j} className="px-3 py-2 font-mono text-xs">{String(cell)}</td>)}
               </tr>
@@ -33,8 +36,8 @@ export function OutputView({ run }: { run: Run }) {
     );
   }
   if (o.type === "chart" && o.chart) {
-    const Comp = o.chart.kind === "bar" ? BarChart : LineChart;
-    const Series = o.chart.kind === "bar" ? Bar : Line;
+    const Comp: any = o.chart.kind === "bar" ? BarChart : LineChart;
+    const Series: any = o.chart.kind === "bar" ? Bar : Line;
     return (
       <div className="h-72">
         <ResponsiveContainer width="100%" height="100%">
@@ -42,8 +45,7 @@ export function OutputView({ run }: { run: Run }) {
             <XAxis dataKey={o.chart.xKey} stroke="var(--muted-foreground)" fontSize={11} />
             <YAxis stroke="var(--muted-foreground)" fontSize={11} />
             <Tooltip contentStyle={{ background: "var(--popover)", border: "1px solid var(--border)", borderRadius: 8, fontSize: 12 }} />
-            {o.chart.yKeys.map((k, i) => (
-              // @ts-expect-error recharts polymorphism
+            {o.chart.yKeys.map((k: string, i: number) => (
               <Series key={k} type="monotone" dataKey={k} stroke={`var(--chart-${(i % 5) + 1})`} fill={`var(--chart-${(i % 5) + 1})`} strokeWidth={2} />
             ))}
           </Comp>
@@ -51,20 +53,9 @@ export function OutputView({ run }: { run: Run }) {
       </div>
     );
   }
-  if (o.type === "shiny") {
+  if (o.type === "shiny" && o.shinyUrl) {
     return (
-      <div className="space-y-2">
-        <div className="flex items-center justify-between">
-          <span className="font-mono text-[11px] text-muted-foreground">Shiny session — auto-shutdown in 30:00</span>
-          <a href={o.shinyUrl} target="_blank" rel="noreferrer" className="text-xs text-primary hover:underline">Open in new tab ↗</a>
-        </div>
-        <iframe
-          src={o.shinyUrl}
-          className="h-[560px] w-full rounded-md border border-border bg-card"
-          sandbox="allow-scripts allow-same-origin allow-forms"
-          title="Shiny app"
-        />
-      </div>
+      <iframe src={o.shinyUrl} className="h-[560px] w-full rounded-md border border-border bg-card" title="Shiny app" />
     );
   }
   return null;

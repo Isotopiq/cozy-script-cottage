@@ -1,16 +1,16 @@
 import { createFileRoute, Link, useNavigate } from "@tanstack/react-router";
 import { useState } from "react";
-import logoUrl from "@/assets/isotopiq-logo.png";
-import { Footer } from "@/components/footer";
 import { useAuth } from "@/hooks/use-auth";
 import { usePublicSettings } from "@/lib/hooks/use-data";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Captcha } from "@/components/captcha";
+import logoUrl from "@/assets/isotopiq-logo.png";
+import { Footer } from "@/components/footer";
 
 export const Route = createFileRoute("/login")({
-  head: () => ({ meta: [{ title: "Sign in — Script Hub" }] }),
+  head: () => ({ meta: [{ title: "Sign in — Isotopiq" }] }),
   ssr: false,
   component: LoginPage,
 });
@@ -39,54 +39,81 @@ function LoginPage() {
   };
 
   return (
-    <div className="flex min-h-screen flex-col">
-    <div className="grid flex-1 lg:grid-cols-2">
-      <div className="relative hidden overflow-hidden bg-sidebar lg:block">
-        <div className="absolute inset-0 bg-grid opacity-30" />
-        <div className="absolute inset-0 bg-gradient-to-br from-primary/10 via-transparent to-accent/10" />
-        <div className="relative flex h-full flex-col justify-between p-10">
-          <img src={logoUrl} alt="Isotopiq" className="h-9 w-auto" />
-          <div>
-            <h1 className="font-mono text-4xl leading-tight tracking-tight">
-              Run every <span className="text-gradient">Python &amp; R</span> script from one place.
-            </h1>
-            <p className="mt-4 max-w-md text-sm text-muted-foreground">
-              A control plane for one-off scripts. CMS, queued runs, live logs, embedded Shiny apps, and an in-browser REPL.
-            </p>
-          </div>
-          <div className="font-mono text-[11px] text-muted-foreground">Isotopiq · Script Hub</div>
-        </div>
+    <div className="relative flex min-h-screen flex-col bg-background">
+      <div className="pointer-events-none absolute inset-0 overflow-hidden">
+        <div className="absolute -top-40 left-1/2 h-[480px] w-[480px] -translate-x-1/2 rounded-full bg-primary/15 blur-3xl" />
+        <div className="absolute bottom-0 right-0 h-[360px] w-[360px] translate-x-1/3 translate-y-1/3 rounded-full bg-accent/10 blur-3xl" />
+        <div className="absolute inset-0 bg-grid opacity-[0.04]" />
       </div>
 
-      <div className="flex items-center justify-center p-6">
-        <form onSubmit={submit} className="w-full max-w-sm space-y-5">
-          <div>
-            <h2 className="font-mono text-2xl tracking-tight">Welcome back</h2>
-            <p className="mt-1 text-sm text-muted-foreground">Sign in to your Script Hub workspace.</p>
+      <main className="relative flex flex-1 items-center justify-center px-4 py-12">
+        <div className="w-full max-w-[400px]">
+          <div className="mb-8 flex flex-col items-center text-center">
+            <img src={logoUrl} alt="Isotopiq" className="h-10 w-auto object-contain" />
+            <p className="mt-4 text-sm text-muted-foreground">
+              Sign in to your Script Hub workspace
+            </p>
           </div>
-          <div className="space-y-2">
-            <Label htmlFor="email">Email</Label>
-            <Input id="email" type="email" value={email} onChange={(e) => setEmail(e.target.value)} required />
+
+          <div className="rounded-2xl border border-border bg-card/60 p-7 shadow-xl shadow-black/5 backdrop-blur-sm">
+            <form onSubmit={submit} className="space-y-4">
+              <div className="space-y-1.5">
+                <Label htmlFor="email" className="text-xs font-medium">Email</Label>
+                <Input
+                  id="email"
+                  type="email"
+                  value={email}
+                  onChange={(e) => setEmail(e.target.value)}
+                  required
+                  autoComplete="email"
+                  placeholder="you@company.com"
+                  className="h-10"
+                />
+              </div>
+              <div className="space-y-1.5">
+                <div className="flex items-center justify-between">
+                  <Label htmlFor="password" className="text-xs font-medium">Password</Label>
+                  <Link to="/forgot-password" className="text-xs text-muted-foreground transition-colors hover:text-foreground">
+                    Forgot?
+                  </Link>
+                </div>
+                <Input
+                  id="password"
+                  type="password"
+                  value={password}
+                  onChange={(e) => setPassword(e.target.value)}
+                  required
+                  autoComplete="current-password"
+                  className="h-10"
+                />
+              </div>
+
+              {settings?.hcaptcha_site_key && (
+                <Captcha siteKey={settings.hcaptcha_site_key} onVerify={setCaptchaToken} />
+              )}
+
+              {error && (
+                <p className="rounded-md border border-destructive/40 bg-destructive/10 px-3 py-2 text-xs text-destructive">
+                  {error}
+                </p>
+              )}
+
+              <Button type="submit" className="h-10 w-full" disabled={loading}>
+                {loading ? "Signing in…" : "Sign in"}
+              </Button>
+            </form>
           </div>
-          <div className="space-y-2">
-            <div className="flex items-center justify-between">
-              <Label htmlFor="password">Password</Label>
-              <Link to="/forgot-password" className="text-[11px] text-muted-foreground hover:text-foreground">Forgot?</Link>
-            </div>
-            <Input id="password" type="password" value={password} onChange={(e) => setPassword(e.target.value)} required />
-          </div>
-          <Captcha siteKey={settings?.hcaptcha_site_key} onVerify={setCaptchaToken} />
-          {error && <p className="rounded-md border border-destructive/40 bg-destructive/10 px-3 py-2 text-xs text-destructive">{error}</p>}
-          <Button type="submit" className="w-full" disabled={loading}>
-            {loading ? "Signing in..." : "Sign in"}
-          </Button>
-          <p className="text-center text-xs text-muted-foreground">
-            No account? <Link to="/signup" className="text-foreground hover:underline">Create one</Link>
+
+          <p className="mt-6 text-center text-sm text-muted-foreground">
+            No account?{" "}
+            <Link to="/signup" className="font-medium text-foreground transition-colors hover:text-primary">
+              Create one
+            </Link>
           </p>
-        </form>
-      </div>
-    </div>
-    <Footer />
+        </div>
+      </main>
+
+      <Footer />
     </div>
   );
 }

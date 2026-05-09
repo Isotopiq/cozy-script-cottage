@@ -20,11 +20,17 @@ import { Route as AuthenticatedSettingsRouteImport } from './routes/_authenticat
 import { Route as AuthenticatedReplRouteImport } from './routes/_authenticated.repl'
 import { Route as AuthenticatedProfileRouteImport } from './routes/_authenticated.profile'
 import { Route as AuthenticatedCategoriesRouteImport } from './routes/_authenticated.categories'
+import { Route as AuthenticatedAdminRouteImport } from './routes/_authenticated.admin'
 import { Route as AuthenticatedScriptsIndexRouteImport } from './routes/_authenticated.scripts.index'
 import { Route as AuthenticatedRunsIndexRouteImport } from './routes/_authenticated.runs.index'
+import { Route as AuthenticatedAdminIndexRouteImport } from './routes/_authenticated.admin.index'
 import { Route as AuthenticatedScriptsNewRouteImport } from './routes/_authenticated.scripts.new'
 import { Route as AuthenticatedScriptsSlugRouteImport } from './routes/_authenticated.scripts.$slug'
 import { Route as AuthenticatedRunsIdRouteImport } from './routes/_authenticated.runs.$id'
+import { Route as AuthenticatedAdminWorkersRouteImport } from './routes/_authenticated.admin.workers'
+import { Route as AuthenticatedAdminUsersRouteImport } from './routes/_authenticated.admin.users'
+import { Route as AuthenticatedAdminStorageRouteImport } from './routes/_authenticated.admin.storage'
+import { Route as AuthenticatedAdminInvitesRouteImport } from './routes/_authenticated.admin.invites'
 import { Route as AuthenticatedScriptsSlugEditRouteImport } from './routes/_authenticated.scripts.$slug.edit'
 
 const SignupRoute = SignupRouteImport.update({
@@ -81,6 +87,11 @@ const AuthenticatedCategoriesRoute = AuthenticatedCategoriesRouteImport.update({
   path: '/categories',
   getParentRoute: () => AuthenticatedRoute,
 } as any)
+const AuthenticatedAdminRoute = AuthenticatedAdminRouteImport.update({
+  id: '/admin',
+  path: '/admin',
+  getParentRoute: () => AuthenticatedRoute,
+} as any)
 const AuthenticatedScriptsIndexRoute =
   AuthenticatedScriptsIndexRouteImport.update({
     id: '/scripts/',
@@ -91,6 +102,11 @@ const AuthenticatedRunsIndexRoute = AuthenticatedRunsIndexRouteImport.update({
   id: '/runs/',
   path: '/runs/',
   getParentRoute: () => AuthenticatedRoute,
+} as any)
+const AuthenticatedAdminIndexRoute = AuthenticatedAdminIndexRouteImport.update({
+  id: '/',
+  path: '/',
+  getParentRoute: () => AuthenticatedAdminRoute,
 } as any)
 const AuthenticatedScriptsNewRoute = AuthenticatedScriptsNewRouteImport.update({
   id: '/scripts/new',
@@ -108,6 +124,29 @@ const AuthenticatedRunsIdRoute = AuthenticatedRunsIdRouteImport.update({
   path: '/runs/$id',
   getParentRoute: () => AuthenticatedRoute,
 } as any)
+const AuthenticatedAdminWorkersRoute =
+  AuthenticatedAdminWorkersRouteImport.update({
+    id: '/workers',
+    path: '/workers',
+    getParentRoute: () => AuthenticatedAdminRoute,
+  } as any)
+const AuthenticatedAdminUsersRoute = AuthenticatedAdminUsersRouteImport.update({
+  id: '/users',
+  path: '/users',
+  getParentRoute: () => AuthenticatedAdminRoute,
+} as any)
+const AuthenticatedAdminStorageRoute =
+  AuthenticatedAdminStorageRouteImport.update({
+    id: '/storage',
+    path: '/storage',
+    getParentRoute: () => AuthenticatedAdminRoute,
+  } as any)
+const AuthenticatedAdminInvitesRoute =
+  AuthenticatedAdminInvitesRouteImport.update({
+    id: '/invites',
+    path: '/invites',
+    getParentRoute: () => AuthenticatedAdminRoute,
+  } as any)
 const AuthenticatedScriptsSlugEditRoute =
   AuthenticatedScriptsSlugEditRouteImport.update({
     id: '/edit',
@@ -121,14 +160,20 @@ export interface FileRoutesByFullPath {
   '/login': typeof LoginRoute
   '/reset-password': typeof ResetPasswordRoute
   '/signup': typeof SignupRoute
+  '/admin': typeof AuthenticatedAdminRouteWithChildren
   '/categories': typeof AuthenticatedCategoriesRoute
   '/profile': typeof AuthenticatedProfileRoute
   '/repl': typeof AuthenticatedReplRoute
   '/settings': typeof AuthenticatedSettingsRoute
   '/workers': typeof AuthenticatedWorkersRoute
+  '/admin/invites': typeof AuthenticatedAdminInvitesRoute
+  '/admin/storage': typeof AuthenticatedAdminStorageRoute
+  '/admin/users': typeof AuthenticatedAdminUsersRoute
+  '/admin/workers': typeof AuthenticatedAdminWorkersRoute
   '/runs/$id': typeof AuthenticatedRunsIdRoute
   '/scripts/$slug': typeof AuthenticatedScriptsSlugRouteWithChildren
   '/scripts/new': typeof AuthenticatedScriptsNewRoute
+  '/admin/': typeof AuthenticatedAdminIndexRoute
   '/runs/': typeof AuthenticatedRunsIndexRoute
   '/scripts/': typeof AuthenticatedScriptsIndexRoute
   '/scripts/$slug/edit': typeof AuthenticatedScriptsSlugEditRoute
@@ -144,9 +189,14 @@ export interface FileRoutesByTo {
   '/settings': typeof AuthenticatedSettingsRoute
   '/workers': typeof AuthenticatedWorkersRoute
   '/': typeof AuthenticatedIndexRoute
+  '/admin/invites': typeof AuthenticatedAdminInvitesRoute
+  '/admin/storage': typeof AuthenticatedAdminStorageRoute
+  '/admin/users': typeof AuthenticatedAdminUsersRoute
+  '/admin/workers': typeof AuthenticatedAdminWorkersRoute
   '/runs/$id': typeof AuthenticatedRunsIdRoute
   '/scripts/$slug': typeof AuthenticatedScriptsSlugRouteWithChildren
   '/scripts/new': typeof AuthenticatedScriptsNewRoute
+  '/admin': typeof AuthenticatedAdminIndexRoute
   '/runs': typeof AuthenticatedRunsIndexRoute
   '/scripts': typeof AuthenticatedScriptsIndexRoute
   '/scripts/$slug/edit': typeof AuthenticatedScriptsSlugEditRoute
@@ -158,15 +208,21 @@ export interface FileRoutesById {
   '/login': typeof LoginRoute
   '/reset-password': typeof ResetPasswordRoute
   '/signup': typeof SignupRoute
+  '/_authenticated/admin': typeof AuthenticatedAdminRouteWithChildren
   '/_authenticated/categories': typeof AuthenticatedCategoriesRoute
   '/_authenticated/profile': typeof AuthenticatedProfileRoute
   '/_authenticated/repl': typeof AuthenticatedReplRoute
   '/_authenticated/settings': typeof AuthenticatedSettingsRoute
   '/_authenticated/workers': typeof AuthenticatedWorkersRoute
   '/_authenticated/': typeof AuthenticatedIndexRoute
+  '/_authenticated/admin/invites': typeof AuthenticatedAdminInvitesRoute
+  '/_authenticated/admin/storage': typeof AuthenticatedAdminStorageRoute
+  '/_authenticated/admin/users': typeof AuthenticatedAdminUsersRoute
+  '/_authenticated/admin/workers': typeof AuthenticatedAdminWorkersRoute
   '/_authenticated/runs/$id': typeof AuthenticatedRunsIdRoute
   '/_authenticated/scripts/$slug': typeof AuthenticatedScriptsSlugRouteWithChildren
   '/_authenticated/scripts/new': typeof AuthenticatedScriptsNewRoute
+  '/_authenticated/admin/': typeof AuthenticatedAdminIndexRoute
   '/_authenticated/runs/': typeof AuthenticatedRunsIndexRoute
   '/_authenticated/scripts/': typeof AuthenticatedScriptsIndexRoute
   '/_authenticated/scripts/$slug/edit': typeof AuthenticatedScriptsSlugEditRoute
@@ -179,14 +235,20 @@ export interface FileRouteTypes {
     | '/login'
     | '/reset-password'
     | '/signup'
+    | '/admin'
     | '/categories'
     | '/profile'
     | '/repl'
     | '/settings'
     | '/workers'
+    | '/admin/invites'
+    | '/admin/storage'
+    | '/admin/users'
+    | '/admin/workers'
     | '/runs/$id'
     | '/scripts/$slug'
     | '/scripts/new'
+    | '/admin/'
     | '/runs/'
     | '/scripts/'
     | '/scripts/$slug/edit'
@@ -202,9 +264,14 @@ export interface FileRouteTypes {
     | '/settings'
     | '/workers'
     | '/'
+    | '/admin/invites'
+    | '/admin/storage'
+    | '/admin/users'
+    | '/admin/workers'
     | '/runs/$id'
     | '/scripts/$slug'
     | '/scripts/new'
+    | '/admin'
     | '/runs'
     | '/scripts'
     | '/scripts/$slug/edit'
@@ -215,15 +282,21 @@ export interface FileRouteTypes {
     | '/login'
     | '/reset-password'
     | '/signup'
+    | '/_authenticated/admin'
     | '/_authenticated/categories'
     | '/_authenticated/profile'
     | '/_authenticated/repl'
     | '/_authenticated/settings'
     | '/_authenticated/workers'
     | '/_authenticated/'
+    | '/_authenticated/admin/invites'
+    | '/_authenticated/admin/storage'
+    | '/_authenticated/admin/users'
+    | '/_authenticated/admin/workers'
     | '/_authenticated/runs/$id'
     | '/_authenticated/scripts/$slug'
     | '/_authenticated/scripts/new'
+    | '/_authenticated/admin/'
     | '/_authenticated/runs/'
     | '/_authenticated/scripts/'
     | '/_authenticated/scripts/$slug/edit'
@@ -316,6 +389,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof AuthenticatedCategoriesRouteImport
       parentRoute: typeof AuthenticatedRoute
     }
+    '/_authenticated/admin': {
+      id: '/_authenticated/admin'
+      path: '/admin'
+      fullPath: '/admin'
+      preLoaderRoute: typeof AuthenticatedAdminRouteImport
+      parentRoute: typeof AuthenticatedRoute
+    }
     '/_authenticated/scripts/': {
       id: '/_authenticated/scripts/'
       path: '/scripts'
@@ -329,6 +409,13 @@ declare module '@tanstack/react-router' {
       fullPath: '/runs/'
       preLoaderRoute: typeof AuthenticatedRunsIndexRouteImport
       parentRoute: typeof AuthenticatedRoute
+    }
+    '/_authenticated/admin/': {
+      id: '/_authenticated/admin/'
+      path: '/'
+      fullPath: '/admin/'
+      preLoaderRoute: typeof AuthenticatedAdminIndexRouteImport
+      parentRoute: typeof AuthenticatedAdminRoute
     }
     '/_authenticated/scripts/new': {
       id: '/_authenticated/scripts/new'
@@ -351,6 +438,34 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof AuthenticatedRunsIdRouteImport
       parentRoute: typeof AuthenticatedRoute
     }
+    '/_authenticated/admin/workers': {
+      id: '/_authenticated/admin/workers'
+      path: '/workers'
+      fullPath: '/admin/workers'
+      preLoaderRoute: typeof AuthenticatedAdminWorkersRouteImport
+      parentRoute: typeof AuthenticatedAdminRoute
+    }
+    '/_authenticated/admin/users': {
+      id: '/_authenticated/admin/users'
+      path: '/users'
+      fullPath: '/admin/users'
+      preLoaderRoute: typeof AuthenticatedAdminUsersRouteImport
+      parentRoute: typeof AuthenticatedAdminRoute
+    }
+    '/_authenticated/admin/storage': {
+      id: '/_authenticated/admin/storage'
+      path: '/storage'
+      fullPath: '/admin/storage'
+      preLoaderRoute: typeof AuthenticatedAdminStorageRouteImport
+      parentRoute: typeof AuthenticatedAdminRoute
+    }
+    '/_authenticated/admin/invites': {
+      id: '/_authenticated/admin/invites'
+      path: '/invites'
+      fullPath: '/admin/invites'
+      preLoaderRoute: typeof AuthenticatedAdminInvitesRouteImport
+      parentRoute: typeof AuthenticatedAdminRoute
+    }
     '/_authenticated/scripts/$slug/edit': {
       id: '/_authenticated/scripts/$slug/edit'
       path: '/edit'
@@ -360,6 +475,25 @@ declare module '@tanstack/react-router' {
     }
   }
 }
+
+interface AuthenticatedAdminRouteChildren {
+  AuthenticatedAdminInvitesRoute: typeof AuthenticatedAdminInvitesRoute
+  AuthenticatedAdminStorageRoute: typeof AuthenticatedAdminStorageRoute
+  AuthenticatedAdminUsersRoute: typeof AuthenticatedAdminUsersRoute
+  AuthenticatedAdminWorkersRoute: typeof AuthenticatedAdminWorkersRoute
+  AuthenticatedAdminIndexRoute: typeof AuthenticatedAdminIndexRoute
+}
+
+const AuthenticatedAdminRouteChildren: AuthenticatedAdminRouteChildren = {
+  AuthenticatedAdminInvitesRoute: AuthenticatedAdminInvitesRoute,
+  AuthenticatedAdminStorageRoute: AuthenticatedAdminStorageRoute,
+  AuthenticatedAdminUsersRoute: AuthenticatedAdminUsersRoute,
+  AuthenticatedAdminWorkersRoute: AuthenticatedAdminWorkersRoute,
+  AuthenticatedAdminIndexRoute: AuthenticatedAdminIndexRoute,
+}
+
+const AuthenticatedAdminRouteWithChildren =
+  AuthenticatedAdminRoute._addFileChildren(AuthenticatedAdminRouteChildren)
 
 interface AuthenticatedScriptsSlugRouteChildren {
   AuthenticatedScriptsSlugEditRoute: typeof AuthenticatedScriptsSlugEditRoute
@@ -376,6 +510,7 @@ const AuthenticatedScriptsSlugRouteWithChildren =
   )
 
 interface AuthenticatedRouteChildren {
+  AuthenticatedAdminRoute: typeof AuthenticatedAdminRouteWithChildren
   AuthenticatedCategoriesRoute: typeof AuthenticatedCategoriesRoute
   AuthenticatedProfileRoute: typeof AuthenticatedProfileRoute
   AuthenticatedReplRoute: typeof AuthenticatedReplRoute
@@ -390,6 +525,7 @@ interface AuthenticatedRouteChildren {
 }
 
 const AuthenticatedRouteChildren: AuthenticatedRouteChildren = {
+  AuthenticatedAdminRoute: AuthenticatedAdminRouteWithChildren,
   AuthenticatedCategoriesRoute: AuthenticatedCategoriesRoute,
   AuthenticatedProfileRoute: AuthenticatedProfileRoute,
   AuthenticatedReplRoute: AuthenticatedReplRoute,

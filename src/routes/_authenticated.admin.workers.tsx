@@ -9,6 +9,16 @@ import { supabase } from "@/lib/supabase";
 import { toast } from "sonner";
 import { Trash2 } from "lucide-react";
 
+type WorkerInsertResult = {
+  id: string;
+};
+
+function generateWorkerSecret(length = 40) {
+  const alphabet = "ABCDEFGHJKLMNPQRSTUVWXYZabcdefghijkmnopqrstuvwxyz23456789";
+  const bytes = crypto.getRandomValues(new Uint8Array(length));
+  return Array.from(bytes, (byte) => alphabet[byte % alphabet.length]).join("");
+}
+
 export const Route = createFileRoute("/_authenticated/admin/workers")({
   head: () => ({ meta: [{ title: "Admin · Workers — Isotopiq" }] }),
   component: AdminWorkers,
@@ -24,14 +34,35 @@ function AdminWorkers() {
   const create = async () => {
     if (!name || !baseUrl) return;
     setCreating(true);
-    const { data, error } = await supabase.from("workers").insert({
-      name,
-      base_url: baseUrl,
-      status: "offline",
-      capabilities: { python: true, r: true, bash: true },
-    }).select().single();
+    const workerSecret = generateWorkerSecret();
+    let { data, error } = await supabase
+      .from("workers")
+      .insert({
+        name,
+        base_url: baseUrl,
+        status: "offline",
+        capabilities: { python: true, r: true, bash: true },
+        secret_hash: workerSecret,
+      } as never)
+      .select()
+      .single<WorkerInsertResult>();
+
+    if (error && /column\s+"secret_hash"/i.test(error.message)) {
+      ({ data, error } = await supabase
+        .from("workers")
+        .insert({
+          name,
+          base_url: baseUrl,
+          status: "offline",
+          capabilities: { python: true, r: true, bash: true },
+        } as never)
+        .select()
+        .single<WorkerInsertResult>());
+    }
+
     setCreating(false);
     if (error) return toast.error(error.message);
+    if (!data) return toast.error("Worker registration returned no data");
     setWorkerId(data.id);
     setName("");
     setBaseUrl("");
@@ -53,19 +84,37 @@ function AdminWorkers() {
         <div className="grid gap-3 sm:grid-cols-[1fr_1.4fr_auto] items-end">
           <div className="space-y-1">
             <Label className="text-xs">Worker name</Label>
-            <Input value={name} onChange={(e) => setName(e.target.value)} placeholder="vps-worker-1" />
+            <Input
+              value={name}
+              onChange={(e) => setName(e.target.value)}
+              placeholder="vps-worker-1"
+            />
           </div>
           <div className="space-y-1">
             <Label className="text-xs">Base URL</Label>
-            <Input value={baseUrl} onChange={(e) => setBaseUrl(e.target.value)} placeholder="https://worker.example.com" />
+            <Input
+              value={baseUrl}
+              onChange={(e) => setBaseUrl(e.target.value)}
+              placeholder="https://worker.example.com"
+            />
           </div>
-          <Button onClick={create} disabled={creating || !name || !baseUrl}>{creating ? "Creating..." : "Register"}</Button>
+          <Button onClick={create} disabled={creating || !name || !baseUrl}>
+            {creating ? "Creating..." : "Register"}
+          </Button>
         </div>
-        <p className="mt-2 text-xs text-muted-foreground">Base URL is the public address of the VPS running the worker. It can be a placeholder (e.g. <code className="font-mono">https://pending</code>) if the worker only polls — it just must not be empty.</p>
+        <p className="mt-2 text-xs text-muted-foreground">
+          Base URL is the public address of the VPS running the worker. It can be a placeholder
+          (e.g. <code className="font-mono">https://pending</code>) if the worker only polls — it
+          just must not be empty.
+        </p>
         {workerId && (
           <div className="mt-4 rounded-md border border-success/40 bg-success/10 p-3 text-xs">
-            <p className="font-mono mb-2 font-semibold">Worker registered. Use this WORKER_ID on your VPS:</p>
-            <code className="block break-all rounded bg-background p-2 font-mono text-foreground">{workerId}</code>
+            <p className="font-mono mb-2 font-semibold">
+              Worker registered. Use this WORKER_ID on your VPS:
+            </p>
+            <code className="block break-all rounded bg-background p-2 font-mono text-foreground">
+              {workerId}
+            </code>
           </div>
         )}
       </Card>
@@ -90,15 +139,22 @@ function AdminWorkers() {
               <tr key={w.id} className="border-t border-border">
                 <td className="px-4 py-2 font-mono text-xs">{w.name}</td>
                 <td className="px-4 py-2">
-                  <span className={`text-xs ${w.status === "online" ? "text-success" : w.status === "degraded" ? "text-warning" : "text-muted-foreground"}`}>
+                  <span
+                    className={`text-xs ${w.status === "online" ? "text-success" : w.status === "degraded" ? "text-warning" : "text-muted-foreground"}`}
+                  >
                     {w.status}
                   </span>
                 </td>
                 <td className="px-4 py-2 text-xs font-mono">
-                  {Object.entries(w.capabilities ?? {}).filter(([, v]) => v).map(([k]) => k).join(", ")}
+                  {Object.entries(w.capabilities ?? {})
+                    .filter(([, v]) => v)
+                    .map(([k]) => k)
+                    .join(", ")}
                 </td>
                 <td className="px-4 py-2 font-mono text-xs">{w.queue_depth}</td>
-                <td className="px-4 py-2 font-mono text-xs">{w.last_seen_at ? new Date(w.last_seen_at).toLocaleString() : "—"}</td>
+                <td className="px-4 py-2 font-mono text-xs">
+                  {w.last_seen_at ? new Date(w.last_seen_at).toLocaleString() : "—"}
+                </td>
                 <td className="px-4 py-2 text-right">
                   <Button size="sm" variant="outline" onClick={() => remove(w.id)}>
                     <Trash2 className="h-3 w-3" />
@@ -107,7 +163,11 @@ function AdminWorkers() {
               </tr>
             ))}
             {workers.length === 0 && (
-              <tr><td colSpan={6} className="px-4 py-8 text-center text-sm text-muted-foreground">No workers registered yet.</td></tr>
+              <tr>
+                <td colSpan={6} className="px-4 py-8 text-center text-sm text-muted-foreground">
+                  No workers registered yet.
+                </td>
+              </tr>
             )}
           </tbody>
         </table>

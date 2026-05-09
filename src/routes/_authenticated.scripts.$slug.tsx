@@ -206,6 +206,3 @@ function ParamControl({ field, value, onChange }: { field: ParamField; value: un
     </div>
   );
 }
-
-// avoid unused import warning
-void Run;

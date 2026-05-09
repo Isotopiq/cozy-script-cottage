@@ -56,12 +56,22 @@ function ProfilePage() {
 
   const updatePassword = async (e: React.FormEvent<HTMLFormElement>) => {
     e.preventDefault();
-    const fd = new FormData(e.currentTarget);
+    const form = e.currentTarget;
+    const fd = new FormData(form);
+    const currentPw = String(fd.get("currentpw") ?? "");
     const newPw = String(fd.get("newpw") ?? "");
-    if (newPw.length < 6) { toast.error("Password must be at least 6 characters"); return; }
+    const confirmPw = String(fd.get("confirmpw") ?? "");
+    if (!currentPw) { toast.error("Enter your current password"); return; }
+    if (newPw.length < 6) { toast.error("New password must be at least 6 characters"); return; }
+    if (newPw !== confirmPw) { toast.error("New passwords do not match"); return; }
+    if (newPw === currentPw) { toast.error("New password must be different from current"); return; }
+    if (!user?.email) { toast.error("No email on account"); return; }
+    // Verify current password by re-authenticating
+    const { error: signInErr } = await supabase.auth.signInWithPassword({ email: user.email, password: currentPw });
+    if (signInErr) { toast.error("Current password is incorrect"); return; }
     const { error } = await supabase.auth.updateUser({ password: newPw });
     if (error) toast.error(error.message); else toast.success("Password updated");
-    e.currentTarget.reset();
+    form.reset();
   };
 
   return (
@@ -109,8 +119,16 @@ function ProfilePage() {
           <h3 className="font-mono text-sm tracking-tight">Change password</h3>
           <form onSubmit={updatePassword} className="space-y-3">
             <div className="space-y-1.5">
+              <Label htmlFor="currentpw">Current password</Label>
+              <Input id="currentpw" name="currentpw" type="password" autoComplete="current-password" required />
+            </div>
+            <div className="space-y-1.5">
               <Label htmlFor="newpw">New password</Label>
-              <Input id="newpw" name="newpw" type="password" required minLength={6} />
+              <Input id="newpw" name="newpw" type="password" autoComplete="new-password" required minLength={6} />
+            </div>
+            <div className="space-y-1.5">
+              <Label htmlFor="confirmpw">Confirm new password</Label>
+              <Input id="confirmpw" name="confirmpw" type="password" autoComplete="new-password" required minLength={6} />
             </div>
             <Button type="submit">Update password</Button>
           </form>

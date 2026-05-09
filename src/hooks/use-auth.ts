@@ -31,7 +31,13 @@ export function useAuth() {
       getProfileWithCapabilities(u.id),
       supabase.from("user_roles").select("role").eq("user_id", u.id),
     ]);
-    setProfile((prof as AuthProfile) ?? null);
+    setProfile((prof as AuthProfile) ?? {
+      id: u.id,
+      email: u.email ?? "",
+      display_name: (u.user_metadata as any)?.name ?? (u.email ? u.email.split("@")[0] : null),
+      avatar_url: null,
+      bio: null,
+    });
     setProfileCapabilities(capabilities);
     setIsAdmin(!!roles?.some((r: any) => r.role === "admin"));
   }, []);

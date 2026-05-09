@@ -18,23 +18,19 @@ function AdminWorkers() {
   const { data: workers, reload } = useWorkers();
   const [name, setName] = useState("");
   const [creating, setCreating] = useState(false);
-  const [token, setToken] = useState<string | null>(null);
+  const [workerId, setWorkerId] = useState<string | null>(null);
 
   const create = async () => {
     if (!name) return;
     setCreating(true);
-    // Generate worker token client-side; worker uses it to claim runs.
-    const tok = Array.from(crypto.getRandomValues(new Uint8Array(24)))
-      .map((b) => b.toString(16).padStart(2, "0")).join("");
     const { data, error } = await supabase.from("workers").insert({
       name,
       status: "offline",
       capabilities: { python: true, r: true, bash: true },
-      token: tok,
     }).select().single();
     setCreating(false);
     if (error) return toast.error(error.message);
-    setToken(`${data.id}:${tok}`);
+    setWorkerId(data.id);
     setName("");
     reload();
   };
@@ -58,10 +54,10 @@ function AdminWorkers() {
           </div>
           <Button onClick={create} disabled={creating || !name}>{creating ? "Creating..." : "Register"}</Button>
         </div>
-        {token && (
-          <div className="mt-4 rounded-md border border-warning/40 bg-warning/10 p-3 text-xs">
-            <p className="font-mono mb-2 text-warning-foreground font-semibold">Save this token now — it won't be shown again:</p>
-            <code className="block break-all rounded bg-background p-2 font-mono text-foreground">{token}</code>
+        {workerId && (
+          <div className="mt-4 rounded-md border border-success/40 bg-success/10 p-3 text-xs">
+            <p className="font-mono mb-2 font-semibold">Worker registered. Use this WORKER_ID on your VPS:</p>
+            <code className="block break-all rounded bg-background p-2 font-mono text-foreground">{workerId}</code>
           </div>
         )}
       </Card>

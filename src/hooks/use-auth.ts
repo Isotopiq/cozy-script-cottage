@@ -91,7 +91,7 @@ export function useAuth() {
       const { error } = await supabase.auth.signInWithPassword({
         email,
         password,
-        options: { captchaToken } as any,
+        options: captchaToken ? { captchaToken } : undefined,
       });
       if (error) throw error;
     },
@@ -103,7 +103,7 @@ export function useAuth() {
           emailRedirectTo: typeof window !== "undefined" ? window.location.origin : undefined,
           data: { name: displayName },
           captchaToken,
-        } as any,
+        },
       });
       if (error) throw error;
       return data;

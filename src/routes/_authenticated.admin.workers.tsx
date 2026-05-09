@@ -9,6 +9,12 @@ import { supabase } from "@/lib/supabase";
 import { toast } from "sonner";
 import { Trash2 } from "lucide-react";
 
+function generateWorkerSecret(length = 40) {
+  const alphabet = "ABCDEFGHJKLMNPQRSTUVWXYZabcdefghijkmnopqrstuvwxyz23456789";
+  const bytes = crypto.getRandomValues(new Uint8Array(length));
+  return Array.from(bytes, (byte) => alphabet[byte % alphabet.length]).join("");
+}
+
 export const Route = createFileRoute("/_authenticated/admin/workers")({
   head: () => ({ meta: [{ title: "Admin · Workers — Isotopiq" }] }),
   component: AdminWorkers,
@@ -24,12 +30,24 @@ function AdminWorkers() {
   const create = async () => {
     if (!name || !baseUrl) return;
     setCreating(true);
-    const { data, error } = await supabase.from("workers").insert({
+    const workerSecret = generateWorkerSecret();
+    let { data, error } = await supabase.from("workers").insert({
       name,
       base_url: baseUrl,
       status: "offline",
       capabilities: { python: true, r: true, bash: true },
-    }).select().single();
+      secret_hash: workerSecret,
+    } as any).select().single();
+
+    if (error && /column\s+"secret_hash"/i.test(error.message)) {
+      ({ data, error } = await supabase.from("workers").insert({
+        name,
+        base_url: baseUrl,
+        status: "offline",
+        capabilities: { python: true, r: true, bash: true },
+      } as any).select().single());
+    }
+
     setCreating(false);
     if (error) return toast.error(error.message);
     setWorkerId(data.id);

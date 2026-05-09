@@ -3,6 +3,7 @@ import { useEffect, useState, useCallback } from "react";
 import { Card } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { supabase } from "@/lib/supabase";
+import { useAuth } from "@/hooks/use-auth";
 import { toast } from "sonner";
 
 export const Route = createFileRoute("/_authenticated/admin/users")({
@@ -20,6 +21,7 @@ interface UserRow {
 }
 
 function AdminUsers() {
+  const { user, profile } = useAuth();
   const [rows, setRows] = useState<UserRow[]>([]);
   const [loading, setLoading] = useState(true);
 
@@ -35,9 +37,20 @@ function AdminUsers() {
       arr.push(r.role);
       byUser.set(r.user_id, arr);
     });
-    setRows((profs ?? []).map((p: any) => ({ ...p, roles: byUser.get(p.id) ?? [] })));
+    const mapped = (profs ?? []).map((p: any) => ({ ...p, roles: byUser.get(p.id) ?? [] }));
+    const hasCurrentUser = !!user && mapped.some((row) => row.id === user.id);
+    const fallbackCurrentUser = user && !hasCurrentUser ? [{
+      id: user.id,
+      email: user.email ?? null,
+      display_name: profile?.display_name ?? ((user.user_metadata as any)?.name ?? (user.email ? user.email.split("@")[0] : null)),
+      disabled: false,
+      created_at: new Date().toISOString(),
+      roles: byUser.get(user.id) ?? [],
+    }] : [];
+
+    setRows([...fallbackCurrentUser, ...mapped]);
     setLoading(false);
-  }, []);
+  }, [profile?.display_name, user]);
 
   useEffect(() => { reload(); }, [reload]);
 

@@ -1,0 +1,9 @@
+services:
+  worker:
+    build: .
+    container_name: isotopiq-worker
+    restart: unless-stopped
+    env_file: .env
+    # Uncomment if you want scripts to share a persistent workspace dir
+    # volumes:
+    #   - ./workspace:/workspace

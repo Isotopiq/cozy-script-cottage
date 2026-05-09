@@ -18,6 +18,7 @@ import { Route as AuthenticatedIndexRouteImport } from './routes/_authenticated.
 import { Route as AuthenticatedWorkersRouteImport } from './routes/_authenticated.workers'
 import { Route as AuthenticatedSettingsRouteImport } from './routes/_authenticated.settings'
 import { Route as AuthenticatedReplRouteImport } from './routes/_authenticated.repl'
+import { Route as AuthenticatedProfileRouteImport } from './routes/_authenticated.profile'
 import { Route as AuthenticatedCategoriesRouteImport } from './routes/_authenticated.categories'
 import { Route as AuthenticatedScriptsIndexRouteImport } from './routes/_authenticated.scripts.index'
 import { Route as AuthenticatedRunsIndexRouteImport } from './routes/_authenticated.runs.index'
@@ -70,6 +71,11 @@ const AuthenticatedReplRoute = AuthenticatedReplRouteImport.update({
   path: '/repl',
   getParentRoute: () => AuthenticatedRoute,
 } as any)
+const AuthenticatedProfileRoute = AuthenticatedProfileRouteImport.update({
+  id: '/profile',
+  path: '/profile',
+  getParentRoute: () => AuthenticatedRoute,
+} as any)
 const AuthenticatedCategoriesRoute = AuthenticatedCategoriesRouteImport.update({
   id: '/categories',
   path: '/categories',
@@ -116,6 +122,7 @@ export interface FileRoutesByFullPath {
   '/reset-password': typeof ResetPasswordRoute
   '/signup': typeof SignupRoute
   '/categories': typeof AuthenticatedCategoriesRoute
+  '/profile': typeof AuthenticatedProfileRoute
   '/repl': typeof AuthenticatedReplRoute
   '/settings': typeof AuthenticatedSettingsRoute
   '/workers': typeof AuthenticatedWorkersRoute
@@ -132,6 +139,7 @@ export interface FileRoutesByTo {
   '/reset-password': typeof ResetPasswordRoute
   '/signup': typeof SignupRoute
   '/categories': typeof AuthenticatedCategoriesRoute
+  '/profile': typeof AuthenticatedProfileRoute
   '/repl': typeof AuthenticatedReplRoute
   '/settings': typeof AuthenticatedSettingsRoute
   '/workers': typeof AuthenticatedWorkersRoute
@@ -151,6 +159,7 @@ export interface FileRoutesById {
   '/reset-password': typeof ResetPasswordRoute
   '/signup': typeof SignupRoute
   '/_authenticated/categories': typeof AuthenticatedCategoriesRoute
+  '/_authenticated/profile': typeof AuthenticatedProfileRoute
   '/_authenticated/repl': typeof AuthenticatedReplRoute
   '/_authenticated/settings': typeof AuthenticatedSettingsRoute
   '/_authenticated/workers': typeof AuthenticatedWorkersRoute
@@ -171,6 +180,7 @@ export interface FileRouteTypes {
     | '/reset-password'
     | '/signup'
     | '/categories'
+    | '/profile'
     | '/repl'
     | '/settings'
     | '/workers'
@@ -187,6 +197,7 @@ export interface FileRouteTypes {
     | '/reset-password'
     | '/signup'
     | '/categories'
+    | '/profile'
     | '/repl'
     | '/settings'
     | '/workers'
@@ -205,6 +216,7 @@ export interface FileRouteTypes {
     | '/reset-password'
     | '/signup'
     | '/_authenticated/categories'
+    | '/_authenticated/profile'
     | '/_authenticated/repl'
     | '/_authenticated/settings'
     | '/_authenticated/workers'
@@ -290,6 +302,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof AuthenticatedReplRouteImport
       parentRoute: typeof AuthenticatedRoute
     }
+    '/_authenticated/profile': {
+      id: '/_authenticated/profile'
+      path: '/profile'
+      fullPath: '/profile'
+      preLoaderRoute: typeof AuthenticatedProfileRouteImport
+      parentRoute: typeof AuthenticatedRoute
+    }
     '/_authenticated/categories': {
       id: '/_authenticated/categories'
       path: '/categories'
@@ -358,6 +377,7 @@ const AuthenticatedScriptsSlugRouteWithChildren =
 
 interface AuthenticatedRouteChildren {
   AuthenticatedCategoriesRoute: typeof AuthenticatedCategoriesRoute
+  AuthenticatedProfileRoute: typeof AuthenticatedProfileRoute
   AuthenticatedReplRoute: typeof AuthenticatedReplRoute
   AuthenticatedSettingsRoute: typeof AuthenticatedSettingsRoute
   AuthenticatedWorkersRoute: typeof AuthenticatedWorkersRoute
@@ -371,6 +391,7 @@ interface AuthenticatedRouteChildren {
 
 const AuthenticatedRouteChildren: AuthenticatedRouteChildren = {
   AuthenticatedCategoriesRoute: AuthenticatedCategoriesRoute,
+  AuthenticatedProfileRoute: AuthenticatedProfileRoute,
   AuthenticatedReplRoute: AuthenticatedReplRoute,
   AuthenticatedSettingsRoute: AuthenticatedSettingsRoute,
   AuthenticatedWorkersRoute: AuthenticatedWorkersRoute,

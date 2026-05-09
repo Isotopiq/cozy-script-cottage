@@ -86,22 +86,24 @@ function ProfilePage() {
       <div className="grid gap-4 lg:grid-cols-2">
         <Card className="space-y-4 p-5">
           <div className="flex items-center gap-4">
-            {avatarUrl ? (
+            {profileCapabilities.hasAvatarUrl && avatarUrl ? (
               <img src={avatarUrl} className="h-16 w-16 rounded-full object-cover" alt="" />
             ) : (
               <div className="flex h-16 w-16 items-center justify-center rounded-full bg-secondary font-mono">
                 {(displayName || user?.email || "U").slice(0, 2).toUpperCase()}
               </div>
             )}
-            <div>
-              <input id="avatar" type="file" accept="image/*" hidden
-                onChange={(e) => e.target.files?.[0] && uploadAvatar(e.target.files[0])} />
-              <label htmlFor="avatar">
-                <Button asChild variant="outline" size="sm" disabled={uploading}>
-                  <span>{uploading ? "Uploading…" : "Upload avatar"}</span>
-                </Button>
-              </label>
-            </div>
+            {profileCapabilities.hasAvatarUrl ? (
+              <div>
+                <input id="avatar" type="file" accept="image/*" hidden
+                  onChange={(e) => e.target.files?.[0] && uploadAvatar(e.target.files[0])} />
+                <label htmlFor="avatar">
+                  <Button asChild variant="outline" size="sm" disabled={uploading}>
+                    <span>{uploading ? "Uploading…" : "Upload avatar"}</span>
+                  </Button>
+                </label>
+              </div>
+            ) : null}
           </div>
           <div className="space-y-1.5">
             <Label>Email</Label>

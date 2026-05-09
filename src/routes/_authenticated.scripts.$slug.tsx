@@ -2,7 +2,7 @@ import { createFileRoute, Link, useNavigate, useParams } from "@tanstack/react-r
 import { useEffect, useMemo, useRef, useState } from "react";
 import { Play, Square, Pencil, Star, Trash2, Clock } from "lucide-react";
 import { db } from "@/lib/mock-db";
-import type { ParamField, Run, RunLog } from "@/lib/types";
+import type { ParamField, RunLog } from "@/lib/types";
 import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";

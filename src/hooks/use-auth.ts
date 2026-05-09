@@ -4,7 +4,10 @@ import type { AuthUser } from "@/lib/types";
 
 export function useAuth() {
   const [user, setUser] = useState<AuthUser | null>(() => db.auth.current());
-  useEffect(() => db.auth.onChange(setUser), []);
+  useEffect(() => {
+    const off = db.auth.onChange(setUser);
+    return () => { off(); };
+  }, []);
   return {
     user,
     isAdmin: user?.role === "admin",

@@ -13,15 +13,23 @@ export const Route = createFileRoute("/login")({
 
 function LoginPage() {
   const nav = useNavigate();
-  const [email, setEmail] = useState("you@example.com");
-  const [password, setPassword] = useState("password");
+  const [email, setEmail] = useState("");
+  const [password, setPassword] = useState("");
   const [loading, setLoading] = useState(false);
+  const [error, setError] = useState<string | null>(null);
 
   const submit = async (e: React.FormEvent) => {
     e.preventDefault();
+    setError(null);
     setLoading(true);
-    await db.auth.signIn(email, password);
-    nav({ to: "/" });
+    try {
+      await db.auth.signIn(email, password);
+      nav({ to: "/" });
+    } catch (err) {
+      setError(err instanceof Error ? err.message : "Sign in failed");
+    } finally {
+      setLoading(false);
+    }
   };
 
   return (

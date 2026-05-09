@@ -1,9 +1,10 @@
 import { Link, useRouterState } from "@tanstack/react-router";
 import {
   LayoutDashboard, FileCode2, FolderTree, History,
-  TerminalSquare, ServerCog, Settings, LogOut, Sparkles,
+  TerminalSquare, ServerCog, Settings, LogOut,
   Shield, User as UserIcon,
 } from "lucide-react";
+import logoUrl from "@/assets/isotopiq-logo.png";
 import {
   Sidebar, SidebarContent, SidebarGroup, SidebarGroupContent, SidebarGroupLabel,
   SidebarMenu, SidebarMenuButton, SidebarMenuItem, SidebarHeader, SidebarFooter,
@@ -42,16 +43,10 @@ export function AppSidebar() {
   return (
     <Sidebar collapsible="icon">
       <SidebarHeader className="border-b border-sidebar-border">
-        <Link to="/" className="flex items-center gap-2 px-2 py-2">
-          <div className="flex h-8 w-8 items-center justify-center rounded-md bg-gradient-to-br from-primary to-accent shadow-[var(--shadow-glow)]">
-            <Sparkles className="h-4 w-4 text-primary-foreground" />
+        <Link to="/" className="flex items-center px-2 py-2 overflow-hidden">
+          <div className="overflow-hidden flex-shrink-0" style={{ width: collapsed ? "28px" : "auto", height: "28px" }}>
+            <img src={logoUrl} alt="Isotopiq" className={collapsed ? "h-7 w-auto max-w-none" : "h-7 w-auto"} style={collapsed ? { transform: "translateX(0)" } : undefined} />
           </div>
-          {!collapsed && (
-            <div className="flex flex-col">
-              <span className="font-mono text-sm font-semibold tracking-tight">Script Hub</span>
-              <span className="text-[10px] text-muted-foreground">control plane</span>
-            </div>
-          )}
         </Link>
       </SidebarHeader>
       <SidebarContent>

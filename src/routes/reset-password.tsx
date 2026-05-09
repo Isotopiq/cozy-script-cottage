@@ -4,6 +4,8 @@ import { supabase } from "@/lib/supabase";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
+import { Footer } from "@/components/footer";
+import logoUrl from "@/assets/isotopiq-logo.png";
 
 export const Route = createFileRoute("/reset-password")({
   head: () => ({ meta: [{ title: "Set new password — Script Hub" }] }),
@@ -32,11 +34,15 @@ function ResetPage() {
   };
 
   return (
-    <div className="flex min-h-screen items-center justify-center p-6">
+    <div className="flex min-h-screen flex-col">
+    <div className="flex flex-1 items-center justify-center p-6">
       <form onSubmit={submit} className="w-full max-w-sm space-y-5">
-        <div>
-          <h2 className="font-mono text-2xl tracking-tight">Set new password</h2>
-          <p className="mt-1 text-sm text-muted-foreground">Enter and confirm your new password.</p>
+        <div className="flex flex-col items-center gap-3">
+          <img src={logoUrl} alt="Isotopiq" className="h-9 w-auto" />
+          <div className="text-center">
+            <h2 className="font-mono text-2xl tracking-tight">Set new password</h2>
+            <p className="mt-1 text-sm text-muted-foreground">Enter and confirm your new password.</p>
+          </div>
         </div>
         <div className="space-y-2">
           <Label htmlFor="pw">New password</Label>
@@ -50,6 +56,8 @@ function ResetPage() {
         {info && <p className="rounded-md border border-success/40 bg-success/10 px-3 py-2 text-xs text-success">{info}</p>}
         <Button type="submit" className="w-full" disabled={loading}>{loading ? "Updating..." : "Update password"}</Button>
       </form>
+    </div>
+    <Footer />
     </div>
   );
 }

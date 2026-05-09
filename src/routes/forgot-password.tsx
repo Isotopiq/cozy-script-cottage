@@ -6,6 +6,8 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Captcha } from "@/components/captcha";
+import { Footer } from "@/components/footer";
+import logoUrl from "@/assets/isotopiq-logo.png";
 
 export const Route = createFileRoute("/forgot-password")({
   head: () => ({ meta: [{ title: "Reset password — Script Hub" }] }),
@@ -34,11 +36,15 @@ function ForgotPage() {
   };
 
   return (
-    <div className="flex min-h-screen items-center justify-center p-6">
+    <div className="flex min-h-screen flex-col">
+    <div className="flex flex-1 items-center justify-center p-6">
       <form onSubmit={submit} className="w-full max-w-sm space-y-5">
-        <div>
-          <h2 className="font-mono text-2xl tracking-tight">Reset password</h2>
-          <p className="mt-1 text-sm text-muted-foreground">We'll email you a link.</p>
+        <div className="flex flex-col items-center gap-3">
+          <img src={logoUrl} alt="Isotopiq" className="h-9 w-auto" />
+          <div className="text-center">
+            <h2 className="font-mono text-2xl tracking-tight">Reset password</h2>
+            <p className="mt-1 text-sm text-muted-foreground">We'll email you a link.</p>
+          </div>
         </div>
         <div className="space-y-2">
           <Label htmlFor="email">Email</Label>
@@ -52,6 +58,8 @@ function ForgotPage() {
           <Link to="/login" className="text-foreground hover:underline">Back to sign in</Link>
         </p>
       </form>
+    </div>
+    <Footer />
     </div>
   );
 }

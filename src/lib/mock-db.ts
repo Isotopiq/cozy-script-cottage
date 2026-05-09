@@ -1,4 +1,5 @@
 import { nanoid } from "nanoid";
+import { supabase } from "./supabase";
 import type {
   AuthUser, Category, Run, RunLog, RunOutput, RunStatus, Script, Worker,
 } from "./types";
@@ -160,25 +161,36 @@ const logEvents = new Emitter<{ runId: string; log: RunLog }>();
 const runEvents = new Emitter<Run>();
 
 export const db = {
-  // -------- auth --------
+  // -------- auth (real: Supabase) --------
   auth: {
     current: () => store.auth,
     onChange: (l: Listener<AuthUser | null>) =>
       changes.on((k) => k === "auth" && l(store.auth)),
     async signUp(email: string, password: string, name: string) {
-      void password;
-      store.auth = { id: nanoid(8), email, name, role: "admin" };
-      persist(); changes.emit("auth");
+      const { data, error } = await supabase.auth.signUp({
+        email,
+        password,
+        options: {
+          data: { name },
+          emailRedirectTo: typeof window !== "undefined" ? window.location.origin : undefined,
+        },
+      });
+      if (error) throw error;
+      // session may be null if email confirmations are required
+      await syncAuth();
       return store.auth;
     },
     async signIn(email: string, password: string) {
-      void password;
-      store.auth = { id: nanoid(8), email, name: email.split("@")[0], role: "admin" };
-      persist(); changes.emit("auth");
+      const { error } = await supabase.auth.signInWithPassword({ email, password });
+      if (error) throw error;
+      await syncAuth();
       return store.auth;
     },
     async signOut() {
-      store.auth = null; persist(); changes.emit("auth");
+      await supabase.auth.signOut();
+      store.auth = null;
+      persist();
+      changes.emit("auth");
     },
   },
 
@@ -335,4 +347,45 @@ function mockOutput(script: Script): RunOutput {
     default:
       return { type: "text", text: "Run completed successfully.\nProcessed 1,243 records in 2.31s." };
   }
+}
+
+// ---------- Supabase auth bridge ----------
+async function syncAuth() {
+  const { data } = await supabase.auth.getUser();
+  const u = data.user;
+  if (!u) {
+    store.auth = null;
+    persist();
+    changes.emit("auth");
+    return;
+  }
+  // Look up role; default to viewer. Falls back gracefully if table not yet created.
+  let role: "admin" | "viewer" = "viewer";
+  try {
+    const { data: rows } = await supabase
+      .from("user_roles")
+      .select("role")
+      .eq("user_id", u.id);
+    if (rows?.some((r) => r.role === "admin")) role = "admin";
+    else if (rows && rows.length > 0) role = "viewer";
+  } catch {
+    /* schema not deployed yet — keep default */
+  }
+  const meta = (u.user_metadata ?? {}) as { name?: string };
+  store.auth = {
+    id: u.id,
+    email: u.email ?? "",
+    name: meta.name || (u.email ?? "").split("@")[0] || "user",
+    role,
+  };
+  persist();
+  changes.emit("auth");
+}
+
+if (typeof window !== "undefined") {
+  // initial load + reactive updates
+  void syncAuth();
+  supabase.auth.onAuthStateChange(() => {
+    void syncAuth();
+  });
 }

@@ -27,12 +27,14 @@ function SettingsPage() {
         <Card className="p-5">
           <h3 className="mb-3 font-mono text-sm tracking-tight">Backend</h3>
           <dl className="space-y-2 text-sm">
-            <Row k="Database" v="mock (in-memory + localStorage)" />
-            <Row k="Auth" v="mock — any credentials accepted" />
-            <Row k="Realtime" v="simulated event emitter" />
+            <Row k="Auth" v="Supabase (self-hosted)" />
+            <Row k="URL" v="science-script-sanctuary-supabase.cu4huf.easypanel.host" />
+            <Row k="Database" v="Supabase Postgres" />
+            <Row k="Realtime" v="Supabase channels (when worker writes logs)" />
+            <Row k="Scripts / Runs" v="mock — pending external worker" />
           </dl>
           <p className="mt-4 rounded-md border border-warning/30 bg-warning/5 p-3 text-xs text-warning">
-            Connect your Supabase project to enable real auth, persistence, RLS, storage, and realtime channels.
+            Make sure the schema SQL has been applied. Until the worker is built, script execution and run history are still simulated client-side.
           </p>
         </Card>
         <Card className="p-5 lg:col-span-2">

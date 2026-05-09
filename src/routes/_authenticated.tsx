@@ -40,8 +40,8 @@ function AuthLayout() {
               ))}
             </div>
             <div className="hidden items-center gap-2 rounded-md border border-border bg-card px-2.5 py-1 text-[11px] font-mono text-muted-foreground md:flex">
-              <span className="h-1.5 w-1.5 rounded-full bg-warning" />
-              mock data — connect Supabase to persist
+              <span className="h-1.5 w-1.5 rounded-full bg-success" />
+              supabase connected — scripts/runs still mock until worker is wired
             </div>
             <button
               onClick={toggle}

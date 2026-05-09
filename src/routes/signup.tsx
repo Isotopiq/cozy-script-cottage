@@ -15,11 +15,27 @@ function SignupPage() {
   const [name, setName] = useState("");
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
+  const [loading, setLoading] = useState(false);
+  const [error, setError] = useState<string | null>(null);
+  const [info, setInfo] = useState<string | null>(null);
 
   const submit = async (e: React.FormEvent) => {
     e.preventDefault();
-    await db.auth.signUp(email, password, name);
-    nav({ to: "/" });
+    setError(null);
+    setInfo(null);
+    setLoading(true);
+    try {
+      await db.auth.signUp(email, password, name);
+      if (db.auth.current()) {
+        nav({ to: "/" });
+      } else {
+        setInfo("Check your inbox to confirm your email, then sign in.");
+      }
+    } catch (err) {
+      setError(err instanceof Error ? err.message : "Sign up failed");
+    } finally {
+      setLoading(false);
+    }
   };
 
   return (
@@ -39,9 +55,17 @@ function SignupPage() {
         </div>
         <div className="space-y-2">
           <Label htmlFor="password">Password</Label>
-          <Input id="password" type="password" value={password} onChange={(e) => setPassword(e.target.value)} required />
+          <Input id="password" type="password" value={password} onChange={(e) => setPassword(e.target.value)} required minLength={6} />
         </div>
-        <Button type="submit" className="w-full">Create account</Button>
+        {error && (
+          <p className="rounded-md border border-destructive/40 bg-destructive/10 px-3 py-2 text-xs text-destructive">{error}</p>
+        )}
+        {info && (
+          <p className="rounded-md border border-success/40 bg-success/10 px-3 py-2 text-xs text-success">{info}</p>
+        )}
+        <Button type="submit" className="w-full" disabled={loading}>
+          {loading ? "Creating..." : "Create account"}
+        </Button>
         <p className="text-center text-xs text-muted-foreground">
           Already have one? <Link to="/login" className="text-foreground hover:underline">Sign in</Link>
         </p>

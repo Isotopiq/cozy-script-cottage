@@ -1,22 +1,22 @@
-import { Outlet, createFileRoute, redirect, Link, useRouterState } from "@tanstack/react-router";
+import { Outlet, createFileRoute, Link, useRouterState, useNavigate } from "@tanstack/react-router";
+import { useEffect } from "react";
 import { SidebarProvider, SidebarTrigger } from "@/components/ui/sidebar";
 import { AppSidebar } from "@/components/app-sidebar";
-import { db } from "@/lib/mock-db";
 import { useAuth } from "@/hooks/use-auth";
 import { Toaster } from "@/components/ui/sonner";
 
 export const Route = createFileRoute("/_authenticated")({
-  beforeLoad: () => {
-    if (typeof window !== "undefined" && !db.auth.current()) {
-      throw redirect({ to: "/login" });
-    }
-  },
+  ssr: false,
   component: AuthLayout,
 });
 
 function AuthLayout() {
   const { user } = useAuth();
+  const nav = useNavigate();
   const path = useRouterState({ select: (r) => r.location.pathname });
+  useEffect(() => {
+    if (!user) nav({ to: "/login" });
+  }, [user, nav]);
   if (!user) return null;
 
   const crumbs = path.split("/").filter(Boolean);

@@ -9,61 +9,348 @@
 // Additionally, you should also exclude this file from your linter and/or formatter to prevent it from being checked or modified.
 
 import { Route as rootRouteImport } from './routes/__root'
-import { Route as IndexRouteImport } from './routes/index'
+import { Route as SignupRouteImport } from './routes/signup'
+import { Route as LoginRouteImport } from './routes/login'
+import { Route as AuthenticatedRouteImport } from './routes/_authenticated'
+import { Route as AuthenticatedIndexRouteImport } from './routes/_authenticated.index'
+import { Route as AuthenticatedWorkersRouteImport } from './routes/_authenticated.workers'
+import { Route as AuthenticatedSettingsRouteImport } from './routes/_authenticated.settings'
+import { Route as AuthenticatedReplRouteImport } from './routes/_authenticated.repl'
+import { Route as AuthenticatedCategoriesRouteImport } from './routes/_authenticated.categories'
+import { Route as AuthenticatedScriptsIndexRouteImport } from './routes/_authenticated.scripts.index'
+import { Route as AuthenticatedRunsIndexRouteImport } from './routes/_authenticated.runs.index'
+import { Route as AuthenticatedScriptsNewRouteImport } from './routes/_authenticated.scripts.new'
+import { Route as AuthenticatedScriptsSlugRouteImport } from './routes/_authenticated.scripts.$slug'
+import { Route as AuthenticatedRunsIdRouteImport } from './routes/_authenticated.runs.$id'
+import { Route as AuthenticatedScriptsSlugEditRouteImport } from './routes/_authenticated.scripts.$slug.edit'
 
-const IndexRoute = IndexRouteImport.update({
-  id: '/',
-  path: '/',
+const SignupRoute = SignupRouteImport.update({
+  id: '/signup',
+  path: '/signup',
   getParentRoute: () => rootRouteImport,
 } as any)
+const LoginRoute = LoginRouteImport.update({
+  id: '/login',
+  path: '/login',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const AuthenticatedRoute = AuthenticatedRouteImport.update({
+  id: '/_authenticated',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const AuthenticatedIndexRoute = AuthenticatedIndexRouteImport.update({
+  id: '/',
+  path: '/',
+  getParentRoute: () => AuthenticatedRoute,
+} as any)
+const AuthenticatedWorkersRoute = AuthenticatedWorkersRouteImport.update({
+  id: '/workers',
+  path: '/workers',
+  getParentRoute: () => AuthenticatedRoute,
+} as any)
+const AuthenticatedSettingsRoute = AuthenticatedSettingsRouteImport.update({
+  id: '/settings',
+  path: '/settings',
+  getParentRoute: () => AuthenticatedRoute,
+} as any)
+const AuthenticatedReplRoute = AuthenticatedReplRouteImport.update({
+  id: '/repl',
+  path: '/repl',
+  getParentRoute: () => AuthenticatedRoute,
+} as any)
+const AuthenticatedCategoriesRoute = AuthenticatedCategoriesRouteImport.update({
+  id: '/categories',
+  path: '/categories',
+  getParentRoute: () => AuthenticatedRoute,
+} as any)
+const AuthenticatedScriptsIndexRoute =
+  AuthenticatedScriptsIndexRouteImport.update({
+    id: '/scripts/',
+    path: '/scripts/',
+    getParentRoute: () => AuthenticatedRoute,
+  } as any)
+const AuthenticatedRunsIndexRoute = AuthenticatedRunsIndexRouteImport.update({
+  id: '/runs/',
+  path: '/runs/',
+  getParentRoute: () => AuthenticatedRoute,
+} as any)
+const AuthenticatedScriptsNewRoute = AuthenticatedScriptsNewRouteImport.update({
+  id: '/scripts/new',
+  path: '/scripts/new',
+  getParentRoute: () => AuthenticatedRoute,
+} as any)
+const AuthenticatedScriptsSlugRoute =
+  AuthenticatedScriptsSlugRouteImport.update({
+    id: '/scripts/$slug',
+    path: '/scripts/$slug',
+    getParentRoute: () => AuthenticatedRoute,
+  } as any)
+const AuthenticatedRunsIdRoute = AuthenticatedRunsIdRouteImport.update({
+  id: '/runs/$id',
+  path: '/runs/$id',
+  getParentRoute: () => AuthenticatedRoute,
+} as any)
+const AuthenticatedScriptsSlugEditRoute =
+  AuthenticatedScriptsSlugEditRouteImport.update({
+    id: '/edit',
+    path: '/edit',
+    getParentRoute: () => AuthenticatedScriptsSlugRoute,
+  } as any)
 
 export interface FileRoutesByFullPath {
-  '/': typeof IndexRoute
+  '/': typeof AuthenticatedIndexRoute
+  '/login': typeof LoginRoute
+  '/signup': typeof SignupRoute
+  '/categories': typeof AuthenticatedCategoriesRoute
+  '/repl': typeof AuthenticatedReplRoute
+  '/settings': typeof AuthenticatedSettingsRoute
+  '/workers': typeof AuthenticatedWorkersRoute
+  '/runs/$id': typeof AuthenticatedRunsIdRoute
+  '/scripts/$slug': typeof AuthenticatedScriptsSlugRouteWithChildren
+  '/scripts/new': typeof AuthenticatedScriptsNewRoute
+  '/runs/': typeof AuthenticatedRunsIndexRoute
+  '/scripts/': typeof AuthenticatedScriptsIndexRoute
+  '/scripts/$slug/edit': typeof AuthenticatedScriptsSlugEditRoute
 }
 export interface FileRoutesByTo {
-  '/': typeof IndexRoute
+  '/login': typeof LoginRoute
+  '/signup': typeof SignupRoute
+  '/categories': typeof AuthenticatedCategoriesRoute
+  '/repl': typeof AuthenticatedReplRoute
+  '/settings': typeof AuthenticatedSettingsRoute
+  '/workers': typeof AuthenticatedWorkersRoute
+  '/': typeof AuthenticatedIndexRoute
+  '/runs/$id': typeof AuthenticatedRunsIdRoute
+  '/scripts/$slug': typeof AuthenticatedScriptsSlugRouteWithChildren
+  '/scripts/new': typeof AuthenticatedScriptsNewRoute
+  '/runs': typeof AuthenticatedRunsIndexRoute
+  '/scripts': typeof AuthenticatedScriptsIndexRoute
+  '/scripts/$slug/edit': typeof AuthenticatedScriptsSlugEditRoute
 }
 export interface FileRoutesById {
   __root__: typeof rootRouteImport
-  '/': typeof IndexRoute
+  '/_authenticated': typeof AuthenticatedRouteWithChildren
+  '/login': typeof LoginRoute
+  '/signup': typeof SignupRoute
+  '/_authenticated/categories': typeof AuthenticatedCategoriesRoute
+  '/_authenticated/repl': typeof AuthenticatedReplRoute
+  '/_authenticated/settings': typeof AuthenticatedSettingsRoute
+  '/_authenticated/workers': typeof AuthenticatedWorkersRoute
+  '/_authenticated/': typeof AuthenticatedIndexRoute
+  '/_authenticated/runs/$id': typeof AuthenticatedRunsIdRoute
+  '/_authenticated/scripts/$slug': typeof AuthenticatedScriptsSlugRouteWithChildren
+  '/_authenticated/scripts/new': typeof AuthenticatedScriptsNewRoute
+  '/_authenticated/runs/': typeof AuthenticatedRunsIndexRoute
+  '/_authenticated/scripts/': typeof AuthenticatedScriptsIndexRoute
+  '/_authenticated/scripts/$slug/edit': typeof AuthenticatedScriptsSlugEditRoute
 }
 export interface FileRouteTypes {
   fileRoutesByFullPath: FileRoutesByFullPath
-  fullPaths: '/'
+  fullPaths:
+    | '/'
+    | '/login'
+    | '/signup'
+    | '/categories'
+    | '/repl'
+    | '/settings'
+    | '/workers'
+    | '/runs/$id'
+    | '/scripts/$slug'
+    | '/scripts/new'
+    | '/runs/'
+    | '/scripts/'
+    | '/scripts/$slug/edit'
   fileRoutesByTo: FileRoutesByTo
-  to: '/'
-  id: '__root__' | '/'
+  to:
+    | '/login'
+    | '/signup'
+    | '/categories'
+    | '/repl'
+    | '/settings'
+    | '/workers'
+    | '/'
+    | '/runs/$id'
+    | '/scripts/$slug'
+    | '/scripts/new'
+    | '/runs'
+    | '/scripts'
+    | '/scripts/$slug/edit'
+  id:
+    | '__root__'
+    | '/_authenticated'
+    | '/login'
+    | '/signup'
+    | '/_authenticated/categories'
+    | '/_authenticated/repl'
+    | '/_authenticated/settings'
+    | '/_authenticated/workers'
+    | '/_authenticated/'
+    | '/_authenticated/runs/$id'
+    | '/_authenticated/scripts/$slug'
+    | '/_authenticated/scripts/new'
+    | '/_authenticated/runs/'
+    | '/_authenticated/scripts/'
+    | '/_authenticated/scripts/$slug/edit'
   fileRoutesById: FileRoutesById
 }
 export interface RootRouteChildren {
-  IndexRoute: typeof IndexRoute
+  AuthenticatedRoute: typeof AuthenticatedRouteWithChildren
+  LoginRoute: typeof LoginRoute
+  SignupRoute: typeof SignupRoute
 }
 
 declare module '@tanstack/react-router' {
   interface FileRoutesByPath {
-    '/': {
-      id: '/'
+    '/signup': {
+      id: '/signup'
+      path: '/signup'
+      fullPath: '/signup'
+      preLoaderRoute: typeof SignupRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/login': {
+      id: '/login'
+      path: '/login'
+      fullPath: '/login'
+      preLoaderRoute: typeof LoginRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/_authenticated': {
+      id: '/_authenticated'
+      path: ''
+      fullPath: '/'
+      preLoaderRoute: typeof AuthenticatedRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/_authenticated/': {
+      id: '/_authenticated/'
       path: '/'
       fullPath: '/'
-      preLoaderRoute: typeof IndexRouteImport
-      parentRoute: typeof rootRouteImport
+      preLoaderRoute: typeof AuthenticatedIndexRouteImport
+      parentRoute: typeof AuthenticatedRoute
+    }
+    '/_authenticated/workers': {
+      id: '/_authenticated/workers'
+      path: '/workers'
+      fullPath: '/workers'
+      preLoaderRoute: typeof AuthenticatedWorkersRouteImport
+      parentRoute: typeof AuthenticatedRoute
+    }
+    '/_authenticated/settings': {
+      id: '/_authenticated/settings'
+      path: '/settings'
+      fullPath: '/settings'
+      preLoaderRoute: typeof AuthenticatedSettingsRouteImport
+      parentRoute: typeof AuthenticatedRoute
+    }
+    '/_authenticated/repl': {
+      id: '/_authenticated/repl'
+      path: '/repl'
+      fullPath: '/repl'
+      preLoaderRoute: typeof AuthenticatedReplRouteImport
+      parentRoute: typeof AuthenticatedRoute
+    }
+    '/_authenticated/categories': {
+      id: '/_authenticated/categories'
+      path: '/categories'
+      fullPath: '/categories'
+      preLoaderRoute: typeof AuthenticatedCategoriesRouteImport
+      parentRoute: typeof AuthenticatedRoute
+    }
+    '/_authenticated/scripts/': {
+      id: '/_authenticated/scripts/'
+      path: '/scripts'
+      fullPath: '/scripts/'
+      preLoaderRoute: typeof AuthenticatedScriptsIndexRouteImport
+      parentRoute: typeof AuthenticatedRoute
+    }
+    '/_authenticated/runs/': {
+      id: '/_authenticated/runs/'
+      path: '/runs'
+      fullPath: '/runs/'
+      preLoaderRoute: typeof AuthenticatedRunsIndexRouteImport
+      parentRoute: typeof AuthenticatedRoute
+    }
+    '/_authenticated/scripts/new': {
+      id: '/_authenticated/scripts/new'
+      path: '/scripts/new'
+      fullPath: '/scripts/new'
+      preLoaderRoute: typeof AuthenticatedScriptsNewRouteImport
+      parentRoute: typeof AuthenticatedRoute
+    }
+    '/_authenticated/scripts/$slug': {
+      id: '/_authenticated/scripts/$slug'
+      path: '/scripts/$slug'
+      fullPath: '/scripts/$slug'
+      preLoaderRoute: typeof AuthenticatedScriptsSlugRouteImport
+      parentRoute: typeof AuthenticatedRoute
+    }
+    '/_authenticated/runs/$id': {
+      id: '/_authenticated/runs/$id'
+      path: '/runs/$id'
+      fullPath: '/runs/$id'
+      preLoaderRoute: typeof AuthenticatedRunsIdRouteImport
+      parentRoute: typeof AuthenticatedRoute
+    }
+    '/_authenticated/scripts/$slug/edit': {
+      id: '/_authenticated/scripts/$slug/edit'
+      path: '/edit'
+      fullPath: '/scripts/$slug/edit'
+      preLoaderRoute: typeof AuthenticatedScriptsSlugEditRouteImport
+      parentRoute: typeof AuthenticatedScriptsSlugRoute
     }
   }
 }
 
+interface AuthenticatedScriptsSlugRouteChildren {
+  AuthenticatedScriptsSlugEditRoute: typeof AuthenticatedScriptsSlugEditRoute
+}
+
+const AuthenticatedScriptsSlugRouteChildren: AuthenticatedScriptsSlugRouteChildren =
+  {
+    AuthenticatedScriptsSlugEditRoute: AuthenticatedScriptsSlugEditRoute,
+  }
+
+const AuthenticatedScriptsSlugRouteWithChildren =
+  AuthenticatedScriptsSlugRoute._addFileChildren(
+    AuthenticatedScriptsSlugRouteChildren,
+  )
+
+interface AuthenticatedRouteChildren {
+  AuthenticatedCategoriesRoute: typeof AuthenticatedCategoriesRoute
+  AuthenticatedReplRoute: typeof AuthenticatedReplRoute
+  AuthenticatedSettingsRoute: typeof AuthenticatedSettingsRoute
+  AuthenticatedWorkersRoute: typeof AuthenticatedWorkersRoute
+  AuthenticatedIndexRoute: typeof AuthenticatedIndexRoute
+  AuthenticatedRunsIdRoute: typeof AuthenticatedRunsIdRoute
+  AuthenticatedScriptsSlugRoute: typeof AuthenticatedScriptsSlugRouteWithChildren
+  AuthenticatedScriptsNewRoute: typeof AuthenticatedScriptsNewRoute
+  AuthenticatedRunsIndexRoute: typeof AuthenticatedRunsIndexRoute
+  AuthenticatedScriptsIndexRoute: typeof AuthenticatedScriptsIndexRoute
+}
+
+const AuthenticatedRouteChildren: AuthenticatedRouteChildren = {
+  AuthenticatedCategoriesRoute: AuthenticatedCategoriesRoute,
+  AuthenticatedReplRoute: AuthenticatedReplRoute,
+  AuthenticatedSettingsRoute: AuthenticatedSettingsRoute,
+  AuthenticatedWorkersRoute: AuthenticatedWorkersRoute,
+  AuthenticatedIndexRoute: AuthenticatedIndexRoute,
+  AuthenticatedRunsIdRoute: AuthenticatedRunsIdRoute,
+  AuthenticatedScriptsSlugRoute: AuthenticatedScriptsSlugRouteWithChildren,
+  AuthenticatedScriptsNewRoute: AuthenticatedScriptsNewRoute,
+  AuthenticatedRunsIndexRoute: AuthenticatedRunsIndexRoute,
+  AuthenticatedScriptsIndexRoute: AuthenticatedScriptsIndexRoute,
+}
+
+const AuthenticatedRouteWithChildren = AuthenticatedRoute._addFileChildren(
+  AuthenticatedRouteChildren,
+)
+
 const rootRouteChildren: RootRouteChildren = {
-  IndexRoute: IndexRoute,
+  AuthenticatedRoute: AuthenticatedRouteWithChildren,
+  LoginRoute: LoginRoute,
+  SignupRoute: SignupRoute,
 }
 export const routeTree = rootRouteImport
   ._addFileChildren(rootRouteChildren)
   ._addFileTypes<FileRouteTypes>()
-
-import type { getRouter } from './router.tsx'
-import type { startInstance } from './start.ts'
-declare module '@tanstack/react-start' {
-  interface Register {
-    ssr: true
-    router: Awaited<ReturnType<typeof getRouter>>
-    config: Awaited<ReturnType<typeof startInstance.getOptions>>
-  }
-}

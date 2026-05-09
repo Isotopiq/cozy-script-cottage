@@ -161,25 +161,36 @@ const logEvents = new Emitter<{ runId: string; log: RunLog }>();
 const runEvents = new Emitter<Run>();
 
 export const db = {
-  // -------- auth --------
+  // -------- auth (real: Supabase) --------
   auth: {
     current: () => store.auth,
     onChange: (l: Listener<AuthUser | null>) =>
       changes.on((k) => k === "auth" && l(store.auth)),
     async signUp(email: string, password: string, name: string) {
-      void password;
-      store.auth = { id: nanoid(8), email, name, role: "admin" };
-      persist(); changes.emit("auth");
+      const { data, error } = await supabase.auth.signUp({
+        email,
+        password,
+        options: {
+          data: { name },
+          emailRedirectTo: typeof window !== "undefined" ? window.location.origin : undefined,
+        },
+      });
+      if (error) throw error;
+      // session may be null if email confirmations are required
+      await syncAuth();
       return store.auth;
     },
     async signIn(email: string, password: string) {
-      void password;
-      store.auth = { id: nanoid(8), email, name: email.split("@")[0], role: "admin" };
-      persist(); changes.emit("auth");
+      const { error } = await supabase.auth.signInWithPassword({ email, password });
+      if (error) throw error;
+      await syncAuth();
       return store.auth;
     },
     async signOut() {
-      store.auth = null; persist(); changes.emit("auth");
+      await supabase.auth.signOut();
+      store.auth = null;
+      persist();
+      changes.emit("auth");
     },
   },
 

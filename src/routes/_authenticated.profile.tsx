@@ -56,12 +56,22 @@ function ProfilePage() {
 
   const updatePassword = async (e: React.FormEvent<HTMLFormElement>) => {
     e.preventDefault();
-    const fd = new FormData(e.currentTarget);
+    const form = e.currentTarget;
+    const fd = new FormData(form);
+    const currentPw = String(fd.get("currentpw") ?? "");
     const newPw = String(fd.get("newpw") ?? "");
-    if (newPw.length < 6) { toast.error("Password must be at least 6 characters"); return; }
+    const confirmPw = String(fd.get("confirmpw") ?? "");
+    if (!currentPw) { toast.error("Enter your current password"); return; }
+    if (newPw.length < 6) { toast.error("New password must be at least 6 characters"); return; }
+    if (newPw !== confirmPw) { toast.error("New passwords do not match"); return; }
+    if (newPw === currentPw) { toast.error("New password must be different from current"); return; }
+    if (!user?.email) { toast.error("No email on account"); return; }
+    // Verify current password by re-authenticating
+    const { error: signInErr } = await supabase.auth.signInWithPassword({ email: user.email, password: currentPw });
+    if (signInErr) { toast.error("Current password is incorrect"); return; }
     const { error } = await supabase.auth.updateUser({ password: newPw });
     if (error) toast.error(error.message); else toast.success("Password updated");
-    e.currentTarget.reset();
+    form.reset();
   };
 
   return (

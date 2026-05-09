@@ -7,6 +7,8 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Captcha } from "@/components/captcha";
+import logoUrl from "@/assets/isotopiq-logo.png";
+import { Footer } from "@/components/footer";
 
 export const Route = createFileRoute("/signup")({
   head: () => ({ meta: [{ title: "Sign up — Script Hub" }] }),
@@ -51,11 +53,15 @@ function SignupPage() {
   };
 
   return (
-    <div className="flex min-h-screen items-center justify-center p-6">
+    <div className="flex min-h-screen flex-col">
+    <div className="flex flex-1 items-center justify-center p-6">
       <form onSubmit={submit} className="w-full max-w-sm space-y-5">
-        <div>
-          <h2 className="font-mono text-2xl tracking-tight">Create account</h2>
-          <p className="mt-1 text-sm text-muted-foreground">First user becomes admin automatically.</p>
+        <div className="flex flex-col items-center gap-3">
+          <img src={logoUrl} alt="Isotopiq" className="h-9 w-auto" />
+          <div className="text-center">
+            <h2 className="font-mono text-2xl tracking-tight">Create account</h2>
+            <p className="mt-1 text-sm text-muted-foreground">First user becomes admin automatically.</p>
+          </div>
         </div>
         <div className="space-y-2">
           <Label htmlFor="name">Display name</Label>

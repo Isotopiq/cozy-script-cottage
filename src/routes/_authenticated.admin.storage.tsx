@@ -19,6 +19,38 @@ function AdminStorage() {
   const { data, reload } = useAppSettings();
   const [form, setForm] = useState<any>({});
   const [saving, setSaving] = useState(false);
+  const [testing, setTesting] = useState(false);
+
+  const testS3 = async () => {
+    if (!form.s3_endpoint || !form.s3_bucket || !form.s3_access_key_id || !form.s3_secret_access_key) {
+      toast.error("Fill endpoint, bucket, and credentials first");
+      return;
+    }
+    setTesting(true);
+    try {
+      const client = new AwsClient({
+        accessKeyId: form.s3_access_key_id,
+        secretAccessKey: form.s3_secret_access_key,
+        region: form.s3_region || "us-east-1",
+        service: "s3",
+      });
+      const endpoint = String(form.s3_endpoint).replace(/\/+$/, "");
+      const url = form.s3_force_path_style
+        ? `${endpoint}/${form.s3_bucket}/?list-type=2&max-keys=1`
+        : endpoint.replace(/^(https?:\/\/)/, `$1${form.s3_bucket}.`) + `/?list-type=2&max-keys=1`;
+      const res = await client.fetch(url, { method: "GET" });
+      if (!res.ok) {
+        const body = await res.text();
+        toast.error(`S3 test failed (${res.status}): ${body.slice(0, 200)}`);
+      } else {
+        toast.success("S3 connection OK");
+      }
+    } catch (e: any) {
+      toast.error(`S3 test failed: ${e.message ?? e}. If the browser blocked it via CORS, configure the bucket to allow this origin.`);
+    } finally {
+      setTesting(false);
+    }
+  };
 
   useEffect(() => { if (data) setForm(data); }, [data]);
 

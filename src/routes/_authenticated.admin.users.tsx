@@ -46,7 +46,7 @@ function AdminUsers() {
       supabase.from("user_roles").select("user_id,role"),
     ]);
     const byUser = new Map<string, string[]>();
-    (roles as RoleRow[] | null ?? []).forEach((r) => {
+    ((roles as RoleRow[] | null) ?? []).forEach((r) => {
       const arr = byUser.get(r.user_id) ?? [];
       arr.push(r.role);
       byUser.set(r.user_id, arr);
@@ -65,7 +65,9 @@ function AdminUsers() {
               id: user.id,
               email: user.email ?? null,
               display_name:
-                profile?.display_name ?? metadata.name ?? (user.email ? user.email.split("@")[0] : null),
+                profile?.display_name ??
+                metadata.name ??
+                (user.email ? user.email.split("@")[0] : null),
               disabled: false,
               created_at: new Date().toISOString(),
               roles: byUser.get(user.id) ?? [],
@@ -77,11 +79,17 @@ function AdminUsers() {
     setLoading(false);
   }, [profile?.display_name, user]);
 
-  useEffect(() => { reload(); }, [reload]);
+  useEffect(() => {
+    reload();
+  }, [reload]);
 
   const toggleAdmin = async (u: UserRow) => {
     if (u.roles.includes("admin")) {
-      const { error } = await supabase.from("user_roles").delete().eq("user_id", u.id).eq("role", "admin");
+      const { error } = await supabase
+        .from("user_roles")
+        .delete()
+        .eq("user_id", u.id)
+        .eq("role", "admin");
       if (error) return toast.error(error.message);
     } else {
       const { error } = await supabase.from("user_roles").insert({ user_id: u.id, role: "admin" });
@@ -92,7 +100,10 @@ function AdminUsers() {
   };
 
   const toggleDisabled = async (u: UserRow) => {
-    const { error } = await supabase.from("profiles").update({ disabled: !u.disabled }).eq("id", u.id);
+    const { error } = await supabase
+      .from("profiles")
+      .update({ disabled: !u.disabled })
+      .eq("id", u.id);
     if (error) return toast.error(error.message);
     toast.success(u.disabled ? "User enabled" : "User disabled");
     reload();
@@ -102,7 +113,9 @@ function AdminUsers() {
     <Card className="p-0 overflow-hidden">
       <div className="border-b border-border px-4 py-3 flex items-center justify-between">
         <h3 className="font-mono text-sm">Users ({rows.length})</h3>
-        <Button size="sm" variant="outline" onClick={reload} disabled={loading}>Refresh</Button>
+        <Button size="sm" variant="outline" onClick={reload} disabled={loading}>
+          Refresh
+        </Button>
       </div>
       <table className="w-full text-sm">
         <thead className="bg-secondary/30 text-[11px] uppercase tracking-wider text-muted-foreground">
@@ -136,7 +149,11 @@ function AdminUsers() {
             </tr>
           ))}
           {rows.length === 0 && !loading && (
-            <tr><td colSpan={5} className="px-4 py-8 text-center text-sm text-muted-foreground">No users yet.</td></tr>
+            <tr>
+              <td colSpan={5} className="px-4 py-8 text-center text-sm text-muted-foreground">
+                No users yet.
+              </td>
+            </tr>
           )}
         </tbody>
       </table>

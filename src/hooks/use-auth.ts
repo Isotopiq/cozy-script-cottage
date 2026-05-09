@@ -38,29 +38,29 @@ export function useAuth() {
     const fallbackDisplayName = metadata.name ?? (u.email ? u.email.split("@")[0] : null);
 
     // Ensure a profile row exists (covers users created before the trigger was installed).
-    await supabase
-      .from("profiles")
-      .upsert(
-        {
-          id: u.id,
-          email: u.email ?? null,
-          display_name: fallbackDisplayName,
-        },
-        { onConflict: "id", ignoreDuplicates: true },
-      );
+    await supabase.from("profiles").upsert(
+      {
+        id: u.id,
+        email: u.email ?? null,
+        display_name: fallbackDisplayName,
+      },
+      { onConflict: "id", ignoreDuplicates: true },
+    );
 
     const [{ profile: prof, capabilities }, { data: roles }] = await Promise.all([
       getProfileWithCapabilities(u.id),
       supabase.from("user_roles").select("role").eq("user_id", u.id),
     ]);
 
-    setProfile((prof as AuthProfile) ?? {
-      id: u.id,
-      email: u.email ?? "",
-      display_name: fallbackDisplayName,
-      avatar_url: null,
-      bio: null,
-    });
+    setProfile(
+      (prof as AuthProfile) ?? {
+        id: u.id,
+        email: u.email ?? "",
+        display_name: fallbackDisplayName,
+        avatar_url: null,
+        bio: null,
+      },
+    );
     setProfileCapabilities(capabilities);
     setIsAdmin(!!roles?.some((r) => r.role === "admin"));
   }, []);

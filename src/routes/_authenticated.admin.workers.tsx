@@ -62,6 +62,7 @@ function AdminWorkers() {
 
     setCreating(false);
     if (error) return toast.error(error.message);
+    if (!data) return toast.error("Worker registration returned no data");
     setWorkerId(data.id);
     setName("");
     setBaseUrl("");

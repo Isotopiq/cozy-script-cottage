@@ -8,7 +8,7 @@ import { useWorkers } from "@/lib/hooks/use-data";
 import { supabase } from "@/lib/supabase";
 import { toast } from "sonner";
 import { Trash2, Copy, Check } from "lucide-react";
-import { supabaseUrl } from "@/lib/supabase";
+import { SUPABASE_URL } from "@/lib/supabase";
 
 type WorkerInsertResult = {
   id: string;

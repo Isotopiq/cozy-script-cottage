@@ -250,22 +250,32 @@ cd isotopiq/worker`}
       />
 
       <CopyBlock
-        label="3. Configure (register a worker above to fill in WORKER_ID)"
+        label="3. Apply database schema (one-time, in Supabase SQL editor)"
+        value={`-- Core schema (only if not already applied)
+\\i worker/sql/scripthub_schema.sql
+
+-- Resource monitoring (CPU / memory / disk / network)
+\\i worker/sql/worker_metrics.sql`}
+      />
+
+      <CopyBlock
+        label="4. Configure (register a worker above to fill in WORKER_ID)"
         value={`cp .env.example .env
 nano .env
 # SUPABASE_URL=${SUPABASE_URL}
 # SUPABASE_SERVICE_ROLE_KEY=<service-role-key>
-# WORKER_ID=<uuid-from-register-above>`}
+# WORKER_ID=<uuid-from-register-above>
+# METRICS_INTERVAL_MS=5000   # optional, defaults to 5s`}
       />
 
       <CopyBlock
-        label="4. Build & start"
+        label="5. Build & start"
         value={`docker compose up -d --build
 docker compose logs -f worker`}
       />
 
       <CopyBlock
-        label="Update later"
+        label="Update later (pulls new worker image with monitoring)"
         value={`git pull
 docker compose up -d --build`}
       />
@@ -276,7 +286,7 @@ docker compose up -d --build`}
       />
 
       <p className="text-[11px] text-muted-foreground">
-        After startup, the worker appears as <span className="text-success">online</span> in the table below and refreshes <code className="font-mono">last_seen_at</code> every 15s.
+        After startup, the worker appears as <span className="text-success">online</span>, refreshes <code className="font-mono">last_seen_at</code> every 15s, and streams CPU/memory/disk/network samples every 5s into the resource monitor (click the <Activity className="inline h-3 w-3" /> icon next to a worker).
       </p>
     </Card>
   );

@@ -103,7 +103,19 @@ function AdminStorage() {
           <Field label="Bucket" k="s3_bucket" form={form} set={set} />
           <Field label="Public base URL" k="s3_public_base_url" form={form} set={set} placeholder="https://cdn.example.com" />
           <Field label="Access key ID" k="s3_access_key_id" form={form} set={set} />
-          <Field label="Secret access key" k="s3_secret_access_key" form={form} set={set} type="password" />
+          <Field
+            label="Secret access key"
+            k="s3_secret_access_key"
+            form={form}
+            set={set}
+            type="password"
+            placeholder={form.s3_secret_configured ? "•••••••• (stored — leave blank to keep)" : "Enter secret"}
+          />
+        </div>
+        <p className="text-xs text-muted-foreground">
+          The S3 secret is stored only on the server. It is never returned to the browser, so it must be re-entered to change it or run a connection test.
+        </p>
+        <div className="grid gap-3 md:grid-cols-2">
         </div>
         <div className="flex items-center justify-between">
           <div>

@@ -65,7 +65,7 @@ export interface DBAppSettings {
   s3_region: string | null;
   s3_bucket: string | null;
   s3_access_key_id: string | null;
-  s3_secret_access_key: string | null;
+  s3_secret_configured: boolean;
   s3_force_path_style: boolean;
   s3_public_base_url: string | null;
 }

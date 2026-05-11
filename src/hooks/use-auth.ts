@@ -108,13 +108,22 @@ export function useAuth() {
       });
       if (error) throw error;
     },
-    signUp: async (email: string, password: string, displayName: string, captchaToken?: string) => {
+    signUp: async (
+      email: string,
+      password: string,
+      displayName: string,
+      captchaToken?: string,
+      inviteCode?: string,
+    ) => {
       const { data, error } = await supabase.auth.signUp({
         email,
         password,
         options: {
           emailRedirectTo: typeof window !== "undefined" ? window.location.origin : undefined,
-          data: { name: displayName },
+          // invite_code is consumed atomically server-side by the
+          // handle_new_user trigger — works even when email confirmation
+          // is required and no client session is established.
+          data: { name: displayName, invite_code: inviteCode ?? null },
           captchaToken,
         },
       });

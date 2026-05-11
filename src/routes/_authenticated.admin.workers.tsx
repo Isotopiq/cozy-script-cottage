@@ -149,7 +149,10 @@ function AdminWorkers() {
                 <td className="px-4 py-2 font-mono text-xs">
                   {w.last_seen_at ? new Date(w.last_seen_at).toLocaleString() : "—"}
                 </td>
-                <td className="px-4 py-2 text-right">
+                <td className="px-4 py-2 text-right space-x-1">
+                  <Button asChild size="sm" variant="outline" title="Resource monitor">
+                    <Link to="/admin/workers/$id" params={{ id: w.id }}><Activity className="h-3 w-3" /></Link>
+                  </Button>
                   <Button size="sm" variant="outline" onClick={() => remove(w.id)}>
                     <Trash2 className="h-3 w-3" />
                   </Button>

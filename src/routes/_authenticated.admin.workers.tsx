@@ -1,4 +1,4 @@
-import { createFileRoute } from "@tanstack/react-router";
+import { createFileRoute, Link } from "@tanstack/react-router";
 import { useState } from "react";
 import { Card } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
@@ -7,7 +7,7 @@ import { Label } from "@/components/ui/label";
 import { useWorkers } from "@/lib/hooks/use-data";
 import { supabase } from "@/lib/supabase";
 import { toast } from "sonner";
-import { Trash2, Copy, Check } from "lucide-react";
+import { Trash2, Copy, Check, Activity } from "lucide-react";
 import { SUPABASE_URL } from "@/lib/supabase";
 
 type WorkerInsertResult = {

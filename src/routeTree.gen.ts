@@ -32,6 +32,7 @@ import { Route as AuthenticatedAdminUsersRouteImport } from './routes/_authentic
 import { Route as AuthenticatedAdminStorageRouteImport } from './routes/_authenticated.admin.storage'
 import { Route as AuthenticatedAdminInvitesRouteImport } from './routes/_authenticated.admin.invites'
 import { Route as AuthenticatedScriptsSlugEditRouteImport } from './routes/_authenticated.scripts.$slug.edit'
+import { Route as AuthenticatedAdminWorkersIdRouteImport } from './routes/_authenticated.admin.workers.$id'
 
 const SignupRoute = SignupRouteImport.update({
   id: '/signup',
@@ -153,6 +154,12 @@ const AuthenticatedScriptsSlugEditRoute =
     path: '/edit',
     getParentRoute: () => AuthenticatedScriptsSlugRoute,
   } as any)
+const AuthenticatedAdminWorkersIdRoute =
+  AuthenticatedAdminWorkersIdRouteImport.update({
+    id: '/$id',
+    path: '/$id',
+    getParentRoute: () => AuthenticatedAdminWorkersRoute,
+  } as any)
 
 export interface FileRoutesByFullPath {
   '/': typeof AuthenticatedIndexRoute
@@ -169,13 +176,14 @@ export interface FileRoutesByFullPath {
   '/admin/invites': typeof AuthenticatedAdminInvitesRoute
   '/admin/storage': typeof AuthenticatedAdminStorageRoute
   '/admin/users': typeof AuthenticatedAdminUsersRoute
-  '/admin/workers': typeof AuthenticatedAdminWorkersRoute
+  '/admin/workers': typeof AuthenticatedAdminWorkersRouteWithChildren
   '/runs/$id': typeof AuthenticatedRunsIdRoute
   '/scripts/$slug': typeof AuthenticatedScriptsSlugRouteWithChildren
   '/scripts/new': typeof AuthenticatedScriptsNewRoute
   '/admin/': typeof AuthenticatedAdminIndexRoute
   '/runs/': typeof AuthenticatedRunsIndexRoute
   '/scripts/': typeof AuthenticatedScriptsIndexRoute
+  '/admin/workers/$id': typeof AuthenticatedAdminWorkersIdRoute
   '/scripts/$slug/edit': typeof AuthenticatedScriptsSlugEditRoute
 }
 export interface FileRoutesByTo {
@@ -192,13 +200,14 @@ export interface FileRoutesByTo {
   '/admin/invites': typeof AuthenticatedAdminInvitesRoute
   '/admin/storage': typeof AuthenticatedAdminStorageRoute
   '/admin/users': typeof AuthenticatedAdminUsersRoute
-  '/admin/workers': typeof AuthenticatedAdminWorkersRoute
+  '/admin/workers': typeof AuthenticatedAdminWorkersRouteWithChildren
   '/runs/$id': typeof AuthenticatedRunsIdRoute
   '/scripts/$slug': typeof AuthenticatedScriptsSlugRouteWithChildren
   '/scripts/new': typeof AuthenticatedScriptsNewRoute
   '/admin': typeof AuthenticatedAdminIndexRoute
   '/runs': typeof AuthenticatedRunsIndexRoute
   '/scripts': typeof AuthenticatedScriptsIndexRoute
+  '/admin/workers/$id': typeof AuthenticatedAdminWorkersIdRoute
   '/scripts/$slug/edit': typeof AuthenticatedScriptsSlugEditRoute
 }
 export interface FileRoutesById {
@@ -218,13 +227,14 @@ export interface FileRoutesById {
   '/_authenticated/admin/invites': typeof AuthenticatedAdminInvitesRoute
   '/_authenticated/admin/storage': typeof AuthenticatedAdminStorageRoute
   '/_authenticated/admin/users': typeof AuthenticatedAdminUsersRoute
-  '/_authenticated/admin/workers': typeof AuthenticatedAdminWorkersRoute
+  '/_authenticated/admin/workers': typeof AuthenticatedAdminWorkersRouteWithChildren
   '/_authenticated/runs/$id': typeof AuthenticatedRunsIdRoute
   '/_authenticated/scripts/$slug': typeof AuthenticatedScriptsSlugRouteWithChildren
   '/_authenticated/scripts/new': typeof AuthenticatedScriptsNewRoute
   '/_authenticated/admin/': typeof AuthenticatedAdminIndexRoute
   '/_authenticated/runs/': typeof AuthenticatedRunsIndexRoute
   '/_authenticated/scripts/': typeof AuthenticatedScriptsIndexRoute
+  '/_authenticated/admin/workers/$id': typeof AuthenticatedAdminWorkersIdRoute
   '/_authenticated/scripts/$slug/edit': typeof AuthenticatedScriptsSlugEditRoute
 }
 export interface FileRouteTypes {
@@ -251,6 +261,7 @@ export interface FileRouteTypes {
     | '/admin/'
     | '/runs/'
     | '/scripts/'
+    | '/admin/workers/$id'
     | '/scripts/$slug/edit'
   fileRoutesByTo: FileRoutesByTo
   to:
@@ -274,6 +285,7 @@ export interface FileRouteTypes {
     | '/admin'
     | '/runs'
     | '/scripts'
+    | '/admin/workers/$id'
     | '/scripts/$slug/edit'
   id:
     | '__root__'
@@ -299,6 +311,7 @@ export interface FileRouteTypes {
     | '/_authenticated/admin/'
     | '/_authenticated/runs/'
     | '/_authenticated/scripts/'
+    | '/_authenticated/admin/workers/$id'
     | '/_authenticated/scripts/$slug/edit'
   fileRoutesById: FileRoutesById
 }
@@ -473,14 +486,35 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof AuthenticatedScriptsSlugEditRouteImport
       parentRoute: typeof AuthenticatedScriptsSlugRoute
     }
+    '/_authenticated/admin/workers/$id': {
+      id: '/_authenticated/admin/workers/$id'
+      path: '/$id'
+      fullPath: '/admin/workers/$id'
+      preLoaderRoute: typeof AuthenticatedAdminWorkersIdRouteImport
+      parentRoute: typeof AuthenticatedAdminWorkersRoute
+    }
   }
 }
+
+interface AuthenticatedAdminWorkersRouteChildren {
+  AuthenticatedAdminWorkersIdRoute: typeof AuthenticatedAdminWorkersIdRoute
+}
+
+const AuthenticatedAdminWorkersRouteChildren: AuthenticatedAdminWorkersRouteChildren =
+  {
+    AuthenticatedAdminWorkersIdRoute: AuthenticatedAdminWorkersIdRoute,
+  }
+
+const AuthenticatedAdminWorkersRouteWithChildren =
+  AuthenticatedAdminWorkersRoute._addFileChildren(
+    AuthenticatedAdminWorkersRouteChildren,
+  )
 
 interface AuthenticatedAdminRouteChildren {
   AuthenticatedAdminInvitesRoute: typeof AuthenticatedAdminInvitesRoute
   AuthenticatedAdminStorageRoute: typeof AuthenticatedAdminStorageRoute
   AuthenticatedAdminUsersRoute: typeof AuthenticatedAdminUsersRoute
-  AuthenticatedAdminWorkersRoute: typeof AuthenticatedAdminWorkersRoute
+  AuthenticatedAdminWorkersRoute: typeof AuthenticatedAdminWorkersRouteWithChildren
   AuthenticatedAdminIndexRoute: typeof AuthenticatedAdminIndexRoute
 }
 
@@ -488,7 +522,7 @@ const AuthenticatedAdminRouteChildren: AuthenticatedAdminRouteChildren = {
   AuthenticatedAdminInvitesRoute: AuthenticatedAdminInvitesRoute,
   AuthenticatedAdminStorageRoute: AuthenticatedAdminStorageRoute,
   AuthenticatedAdminUsersRoute: AuthenticatedAdminUsersRoute,
-  AuthenticatedAdminWorkersRoute: AuthenticatedAdminWorkersRoute,
+  AuthenticatedAdminWorkersRoute: AuthenticatedAdminWorkersRouteWithChildren,
   AuthenticatedAdminIndexRoute: AuthenticatedAdminIndexRoute,
 }
 

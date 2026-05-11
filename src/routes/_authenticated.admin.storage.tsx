@@ -23,7 +23,7 @@ function AdminStorage() {
 
   const testS3 = async () => {
     if (!form.s3_endpoint || !form.s3_bucket || !form.s3_access_key_id || !form.s3_secret_access_key) {
-      toast.error("Fill endpoint, bucket, and credentials first");
+      toast.error("Enter endpoint, bucket, access key, and secret to test. The secret is never stored in the browser and must be re-entered each session.");
       return;
     }
     setTesting(true);
@@ -52,23 +52,26 @@ function AdminStorage() {
     }
   };
 
-  useEffect(() => { if (data) setForm(data); }, [data]);
+  useEffect(() => { if (data) setForm({ ...data, s3_secret_access_key: "" }); }, [data]);
 
   const set = (k: string, v: any) => setForm((f: any) => ({ ...f, [k]: v }));
 
   const save = async () => {
     setSaving(true);
-    const { error } = await supabase.from("app_settings").update({
-      signup_requires_invite: form.signup_requires_invite,
-      hcaptcha_site_key: form.hcaptcha_site_key || null,
-      s3_endpoint: form.s3_endpoint || null,
-      s3_region: form.s3_region || null,
-      s3_bucket: form.s3_bucket || null,
-      s3_access_key_id: form.s3_access_key_id || null,
-      s3_secret_access_key: form.s3_secret_access_key || null,
-      s3_force_path_style: !!form.s3_force_path_style,
-      s3_public_base_url: form.s3_public_base_url || null,
-    }).eq("id", true);
+    // SECURITY: route writes through a SECURITY DEFINER RPC. The S3 secret is
+    // only sent when the admin has typed a new value; otherwise the stored
+    // secret is preserved server-side and never round-trips through the browser.
+    const { error } = await supabase.rpc("update_app_settings", {
+      _signup_requires_invite: !!form.signup_requires_invite,
+      _hcaptcha_site_key: form.hcaptcha_site_key || null,
+      _s3_endpoint: form.s3_endpoint || null,
+      _s3_region: form.s3_region || null,
+      _s3_bucket: form.s3_bucket || null,
+      _s3_access_key_id: form.s3_access_key_id || null,
+      _s3_secret_access_key: form.s3_secret_access_key || null,
+      _s3_force_path_style: !!form.s3_force_path_style,
+      _s3_public_base_url: form.s3_public_base_url || null,
+    });
     setSaving(false);
     if (error) return toast.error(error.message);
     toast.success("Settings saved");

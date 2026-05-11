@@ -115,8 +115,6 @@ function AdminStorage() {
         <p className="text-xs text-muted-foreground">
           The S3 secret is stored only on the server. It is never returned to the browser, so it must be re-entered to change it or run a connection test.
         </p>
-        <div className="grid gap-3 md:grid-cols-2">
-        </div>
         <div className="flex items-center justify-between">
           <div>
             <Label>Force path style</Label>

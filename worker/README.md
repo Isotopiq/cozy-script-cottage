@@ -23,13 +23,15 @@ sudo usermod -aG docker "$USER"   # log out + back in to apply
 
 ## 2. One-time database setup (Supabase)
 
-Run the SQL below in your Supabase SQL editor. It is idempotent — safe to
-re-run after upgrades. The complete schema is also bundled in this repo at
-`worker/sql/scripthub_schema.sql`.
+Run the SQL below in your Supabase SQL editor. Both files are idempotent —
+safe to re-run after upgrades.
 
 ```bash
-# From your laptop, you can also pipe the file directly to psql:
+# Core schema (tables, RLS, triggers, buckets)
 psql "$SUPABASE_DB_URL" -f worker/sql/scripthub_schema.sql
+
+# Resource monitoring (worker_metrics time series for CPU / mem / disk / net)
+psql "$SUPABASE_DB_URL" -f worker/sql/worker_metrics.sql
 ```
 
 What it creates:

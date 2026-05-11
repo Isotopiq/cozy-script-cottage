@@ -3,14 +3,16 @@
  *
  * Polls the Supabase `runs` table for queued runs, claims one atomically,
  * executes the associated script (python / Rscript / bash), streams stdout
- * and stderr into `run_logs`, and finalizes the run row.
+ * and stderr into `run_logs`, finalizes the run row, AND samples host
+ * resource metrics (CPU / memory / disk / network) into `worker_metrics`.
  *
  * Auth: uses the Supabase SERVICE_ROLE key (private VPS only).
  */
 import { createClient } from "@supabase/supabase-js";
 import { spawn } from "node:child_process";
-import { mkdtemp, writeFile, rm } from "node:fs/promises";
+import { mkdtemp, writeFile, rm, readFile, statfs } from "node:fs/promises";
 import { tmpdir } from "node:os";
+import os from "node:os";
 import { join } from "node:path";
 
 const SUPABASE_URL = need("SUPABASE_URL");
@@ -18,6 +20,7 @@ const SERVICE_ROLE = need("SUPABASE_SERVICE_ROLE_KEY");
 const WORKER_ID = need("WORKER_ID");
 const POLL_MS = Number(process.env.POLL_INTERVAL_MS ?? 3000);
 const HEARTBEAT_MS = Number(process.env.HEARTBEAT_INTERVAL_MS ?? 15000);
+const METRICS_MS = Number(process.env.METRICS_INTERVAL_MS ?? 5000);
 const MAX_LOG_LINE = 4000;
 
 function need(k: string): string {
@@ -52,7 +55,6 @@ async function heartbeat() {
 }
 
 async function claimRun(): Promise<Run | null> {
-  // Atomic claim: only succeeds if status is still 'queued'.
   const { data: candidate } = await sb
     .from("runs")
     .select("id, script_id, params")
@@ -168,12 +170,125 @@ async function executeRun(run: Run) {
   await logLine(run.id, "system", `Run ${ok ? "succeeded" : "failed"} (exit ${exit_code})`);
 }
 
-async function loop() {
-  console.log(`[isotopiq-worker] starting · id=${WORKER_ID} · poll=${POLL_MS}ms`);
-  setInterval(() => { void heartbeat(); }, HEARTBEAT_MS);
-  await heartbeat();
+// ============================================================
+// Resource metrics sampler — Linux /proc-based, best-effort.
+// ============================================================
 
-  // graceful shutdown
+type CpuSnap = { idle: number; total: number };
+type NetSnap = { rx: number; tx: number; t: number };
+
+let prevCpu: CpuSnap | null = null;
+let prevNet: NetSnap | null = null;
+let metricInsertCount = 0;
+
+async function readCpu(): Promise<CpuSnap | null> {
+  try {
+    const text = await readFile("/proc/stat", "utf8");
+    const line = text.split("\n").find((l) => l.startsWith("cpu "));
+    if (!line) return null;
+    const parts = line.trim().split(/\s+/).slice(1).map(Number);
+    const idle = (parts[3] ?? 0) + (parts[4] ?? 0); // idle + iowait
+    const total = parts.reduce((a, b) => a + b, 0);
+    return { idle, total };
+  } catch { return null; }
+}
+
+async function readMem(): Promise<{ used_mb: number; total_mb: number } | null> {
+  try {
+    const text = await readFile("/proc/meminfo", "utf8");
+    const kv: Record<string, number> = {};
+    for (const line of text.split("\n")) {
+      const m = /^(\w+):\s+(\d+)\s*kB/.exec(line);
+      if (m) kv[m[1]] = Number(m[2]);
+    }
+    const total = kv.MemTotal ?? 0;
+    const avail = kv.MemAvailable ?? kv.MemFree ?? 0;
+    return { total_mb: total / 1024, used_mb: (total - avail) / 1024 };
+  } catch { return null; }
+}
+
+async function readDisk(): Promise<{ used_gb: number; total_gb: number } | null> {
+  try {
+    const s = await statfs("/");
+    const total = s.blocks * s.bsize;
+    const free = s.bavail * s.bsize;
+    return { total_gb: total / 1024 ** 3, used_gb: (total - free) / 1024 ** 3 };
+  } catch { return null; }
+}
+
+async function readNet(): Promise<NetSnap | null> {
+  try {
+    const text = await readFile("/proc/net/dev", "utf8");
+    let rx = 0, tx = 0;
+    for (const line of text.split("\n")) {
+      const m = /^\s*([^:]+):\s*(.+)$/.exec(line);
+      if (!m) continue;
+      const iface = m[1].trim();
+      if (iface === "lo") continue;
+      const cols = m[2].trim().split(/\s+/).map(Number);
+      rx += cols[0] ?? 0;
+      tx += cols[8] ?? 0;
+    }
+    return { rx, tx, t: Date.now() };
+  } catch { return null; }
+}
+
+async function sampleMetrics() {
+  try {
+    const [cpu, mem, disk, net] = await Promise.all([readCpu(), readMem(), readDisk(), readNet()]);
+
+    let cpu_pct: number | null = null;
+    if (cpu && prevCpu) {
+      const dt = cpu.total - prevCpu.total;
+      const di = cpu.idle - prevCpu.idle;
+      if (dt > 0) cpu_pct = Math.max(0, Math.min(100, ((dt - di) / dt) * 100));
+    }
+    prevCpu = cpu ?? prevCpu;
+
+    let net_rx_bps: number | null = null;
+    let net_tx_bps: number | null = null;
+    if (net && prevNet) {
+      const dt = (net.t - prevNet.t) / 1000;
+      if (dt > 0) {
+        net_rx_bps = Math.max(0, (net.rx - prevNet.rx) / dt);
+        net_tx_bps = Math.max(0, (net.tx - prevNet.tx) / dt);
+      }
+    }
+    prevNet = net ?? prevNet;
+
+    // Skip first tick (no deltas yet)
+    if (cpu_pct === null && net_rx_bps === null) return;
+
+    const row = {
+      worker_id: WORKER_ID,
+      cpu_pct,
+      mem_used_mb: mem?.used_mb ?? null,
+      mem_total_mb: mem?.total_mb ?? null,
+      disk_used_gb: disk?.used_gb ?? null,
+      disk_total_gb: disk?.total_gb ?? null,
+      net_rx_bps,
+      net_tx_bps,
+      load_1m: os.loadavg()[0] ?? null,
+    };
+    const { error } = await sb.from("worker_metrics").insert(row);
+    if (error) { console.error("metrics insert", error.message); return; }
+
+    metricInsertCount++;
+    if (metricInsertCount % 100 === 0) {
+      await sb.rpc("prune_worker_metrics");
+    }
+  } catch (err) {
+    console.error("sampleMetrics error", err);
+  }
+}
+
+async function loop() {
+  console.log(`[isotopiq-worker] starting · id=${WORKER_ID} · poll=${POLL_MS}ms · metrics=${METRICS_MS}ms`);
+  setInterval(() => { void heartbeat(); }, HEARTBEAT_MS);
+  setInterval(() => { void sampleMetrics(); }, METRICS_MS);
+  await heartbeat();
+  await sampleMetrics(); // prime prev snapshots
+
   const shutdown = async () => {
     console.log("Shutting down…");
     await sb.from("workers").update({ status: "offline" }).eq("id", WORKER_ID);

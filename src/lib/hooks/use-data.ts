@@ -153,7 +153,13 @@ export function useAppSettings() {
   const [data, setData] = useState<DBAppSettings | null>(null);
   const [loading, setLoading] = useState(true);
   const reload = useCallback(async () => {
-    const { data } = await supabase.from("app_settings").select("*").eq("id", true).maybeSingle();
+    // SECURITY: never fetch s3_secret_access_key into the browser.
+    // The safe view exposes only a boolean indicating whether a secret is set.
+    const { data } = await supabase
+      .from("app_settings_safe")
+      .select("*")
+      .eq("id", true)
+      .maybeSingle();
     setData((data as DBAppSettings) ?? null);
     setLoading(false);
   }, []);

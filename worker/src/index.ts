@@ -147,6 +147,12 @@ async function executeRun(run: Run) {
     RUN_ID: run.id,
     RUN_PARAMS: JSON.stringify(run.params ?? {}),
   };
+  // Forward any operator-opted env vars (e.g. HTTP_PROXY, PYTHONPATH) — never secrets.
+  for (const key of EXTRA_ENV_ALLOWLIST) {
+    if (ENV_BLOCKLIST.has(key)) continue;
+    const val = process.env[key];
+    if (val !== undefined) env[key] = val;
+  }
   const child = spawn(cmd, args, { cwd: dir, env });
   let exit_code: number | null = null;
   const tail: string[] = [];

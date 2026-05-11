@@ -24,6 +24,9 @@ function LoginPage() {
   const [captchaToken, setCaptchaToken] = useState<string | null>(null);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
+  const disabledNotice =
+    typeof window !== "undefined" &&
+    new URLSearchParams(window.location.search).get("disabled") === "1";
 
   const submit = async (e: React.FormEvent) => {
     e.preventDefault();

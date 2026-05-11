@@ -1,0 +1,10 @@
+node_modules
+.git
+.lovable
+dist
+.wrangler
+worker
+*.log
+.env
+.env.*
+!.env.example

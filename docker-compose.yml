@@ -1,0 +1,26 @@
+# Isotopiq Script Hub — Web app
+#
+# Easy deployment on EasyPanel (or any Docker host):
+#   1. Create a new "Compose" service in EasyPanel and point it at this repo.
+#   2. EasyPanel will build the image from ./Dockerfile and start the stack.
+#   3. Add a Proxy entry in EasyPanel for port 47823 -> your domain (HTTPS).
+#
+# Port 47823 was picked at random from the IANA dynamic range (49152-65535
+# is reserved; 47000s is uncommon) to avoid collisions with other apps on
+# the host. Change HOST_PORT in .env if you ever need to remap.
+
+services:
+  web:
+    build: .
+    container_name: isotopiq-web
+    restart: unless-stopped
+    ports:
+      # host:container — change the host side if 47823 is taken on your VPS
+      - "${HOST_PORT:-47823}:47823"
+    environment:
+      NODE_ENV: production
+    healthcheck:
+      test: ["CMD", "wget", "-qO-", "http://localhost:47823/"]
+      interval: 30s
+      timeout: 5s
+      retries: 3

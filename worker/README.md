@@ -117,6 +117,8 @@ docker compose down
 | `WORKER_ID` | yes | UUID copied from Admin → Workers after registering. |
 | `POLL_INTERVAL_MS` | no | Default `3000`. How often to poll for queued runs. |
 | `HEARTBEAT_INTERVAL_MS` | no | Default `15000`. How often to update `last_seen_at`. |
+| `METRICS_INTERVAL_MS` | no | Default `5000`. Resource sampling cadence (CPU / mem / disk / network). |
+| `EXTRA_ENV_ALLOWLIST` | no | Comma-separated env var names to forward into spawned scripts beyond the default safe set (PATH, HOME, TMPDIR, LANG, LC_ALL, RUN_ID, RUN_PARAMS). `SUPABASE_*` and `WORKER_ID` are permanently blocked. |
 
 ---
 

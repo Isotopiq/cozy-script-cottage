@@ -41,7 +41,10 @@ begin
   -- First user ever bypasses invite requirement and becomes admin.
   select count(*) into existing from public.user_roles;
 
-  if reqd and existing > 0 then
+  -- Admin/dashboard inserts run as service_role and must keep working even
+  -- when invites are required. Only the public signup path (anon/authenticated)
+  -- is subject to the strict invite check below.
+  if reqd and existing > 0 and current_setting('role', true) <> 'service_role' then
     code := nullif(new.raw_user_meta_data->>'invite_code', '');
     if code is null then
       raise exception 'Invite code required' using errcode = '28000';

@@ -22,6 +22,20 @@ const POLL_MS = Number(process.env.POLL_INTERVAL_MS ?? 3000);
 const HEARTBEAT_MS = Number(process.env.HEARTBEAT_INTERVAL_MS ?? 15000);
 const METRICS_MS = Number(process.env.METRICS_INTERVAL_MS ?? 5000);
 const MAX_LOG_LINE = 4000;
+// Optional opt-in: comma-separated env var names to forward into spawned
+// scripts beyond the default safe allowlist. Never include secrets here.
+const EXTRA_ENV_ALLOWLIST = (process.env.EXTRA_ENV_ALLOWLIST ?? "")
+  .split(",")
+  .map((s) => s.trim())
+  .filter(Boolean);
+// Names that must never be forwarded even if listed in EXTRA_ENV_ALLOWLIST.
+const ENV_BLOCKLIST = new Set([
+  "SUPABASE_SERVICE_ROLE_KEY",
+  "SUPABASE_URL",
+  "SUPABASE_ANON_KEY",
+  "SUPABASE_PUBLISHABLE_KEY",
+  "WORKER_ID",
+]);
 
 function need(k: string): string {
   const v = process.env[k];
@@ -133,6 +147,12 @@ async function executeRun(run: Run) {
     RUN_ID: run.id,
     RUN_PARAMS: JSON.stringify(run.params ?? {}),
   };
+  // Forward any operator-opted env vars (e.g. HTTP_PROXY, PYTHONPATH) — never secrets.
+  for (const key of EXTRA_ENV_ALLOWLIST) {
+    if (ENV_BLOCKLIST.has(key)) continue;
+    const val = process.env[key];
+    if (val !== undefined) env[key] = val;
+  }
   const child = spawn(cmd, args, { cwd: dir, env });
   let exit_code: number | null = null;
   const tail: string[] = [];

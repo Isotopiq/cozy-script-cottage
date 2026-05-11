@@ -24,6 +24,9 @@ function LoginPage() {
   const [captchaToken, setCaptchaToken] = useState<string | null>(null);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
+  const disabledNotice =
+    typeof window !== "undefined" &&
+    new URLSearchParams(window.location.search).get("disabled") === "1";
 
   const submit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -56,6 +59,11 @@ function LoginPage() {
           </div>
 
           <div className="rounded-2xl border border-border bg-card/60 p-7 shadow-xl shadow-black/5 backdrop-blur-sm">
+            {disabledNotice && (
+              <p className="mb-4 rounded-md border border-destructive/40 bg-destructive/10 px-3 py-2 text-xs text-destructive">
+                This account has been disabled. Please contact an administrator.
+              </p>
+            )}
             <form onSubmit={submit} className="space-y-4">
               <div className="space-y-1.5">
                 <Label htmlFor="email" className="text-xs font-medium">Email</Label>

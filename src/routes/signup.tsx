@@ -33,16 +33,17 @@ function SignupPage() {
     e.preventDefault();
     setError(null); setInfo(null); setLoading(true);
     try {
-      await signUp(email, password, name, captchaToken ?? undefined);
-      // After signUp, if a session was established, consume the invite. If not (email confirmation required), the trigger will still let them in once they confirm.
+      // Invite code is validated and consumed atomically server-side by the
+      // handle_new_user trigger via raw_user_meta_data. This works even when
+      // email confirmation is enabled (no client session post-signUp).
+      await signUp(
+        email,
+        password,
+        name,
+        captchaToken ?? undefined,
+        settings?.signup_requires_invite ? invite : undefined,
+      );
       const { data: sess } = await supabase.auth.getSession();
-      if (sess.session && settings?.signup_requires_invite) {
-        const { error } = await supabase.rpc("consume_invite", { _code: invite });
-        if (error) {
-          await supabase.auth.signOut();
-          throw new Error(error.message);
-        }
-      }
       if (sess.session) nav({ to: "/" });
       else setInfo("Check your inbox to confirm your email, then sign in.");
     } catch (err) {

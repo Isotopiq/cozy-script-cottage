@@ -65,7 +65,7 @@ export interface DBAppSettings {
   s3_region: string | null;
   s3_bucket: string | null;
   s3_access_key_id: string | null;
-  s3_secret_access_key: string | null;
+  s3_secret_configured: boolean;
   s3_force_path_style: boolean;
   s3_public_base_url: string | null;
 }
@@ -153,7 +153,13 @@ export function useAppSettings() {
   const [data, setData] = useState<DBAppSettings | null>(null);
   const [loading, setLoading] = useState(true);
   const reload = useCallback(async () => {
-    const { data } = await supabase.from("app_settings").select("*").eq("id", true).maybeSingle();
+    // SECURITY: never fetch s3_secret_access_key into the browser.
+    // The safe view exposes only a boolean indicating whether a secret is set.
+    const { data } = await supabase
+      .from("app_settings_safe")
+      .select("*")
+      .eq("id", true)
+      .maybeSingle();
     setData((data as DBAppSettings) ?? null);
     setLoading(false);
   }, []);

@@ -47,10 +47,23 @@ export function useAuth() {
       { onConflict: "id", ignoreDuplicates: true },
     );
 
-    const [{ profile: prof, capabilities }, { data: roles }] = await Promise.all([
+    const [{ profile: prof, capabilities }, { data: roles }, { data: disabledRow }] = await Promise.all([
       getProfileWithCapabilities(u.id),
       supabase.from("user_roles").select("role").eq("user_id", u.id),
+      supabase.from("profiles").select("disabled").eq("id", u.id).maybeSingle(),
     ]);
+
+    // SECURITY: Enforce admin "disabled" flag — sign out immediately if set.
+    if (disabledRow?.disabled) {
+      await supabase.auth.signOut();
+      setProfile(null);
+      setProfileCapabilities({ hasAvatarUrl: false, hasBio: false });
+      setIsAdmin(false);
+      if (typeof window !== "undefined") {
+        window.location.href = "/login?disabled=1";
+      }
+      return;
+    }
 
     setProfile(
       (prof as AuthProfile) ?? {
@@ -95,13 +108,22 @@ export function useAuth() {
       });
       if (error) throw error;
     },
-    signUp: async (email: string, password: string, displayName: string, captchaToken?: string) => {
+    signUp: async (
+      email: string,
+      password: string,
+      displayName: string,
+      captchaToken?: string,
+      inviteCode?: string,
+    ) => {
       const { data, error } = await supabase.auth.signUp({
         email,
         password,
         options: {
           emailRedirectTo: typeof window !== "undefined" ? window.location.origin : undefined,
-          data: { name: displayName },
+          // invite_code is consumed atomically server-side by the
+          // handle_new_user trigger — works even when email confirmation
+          // is required and no client session is established.
+          data: { name: displayName, invite_code: inviteCode ?? null },
           captchaToken,
         },
       });

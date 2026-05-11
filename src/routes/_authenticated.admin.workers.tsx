@@ -108,17 +108,10 @@ function AdminWorkers() {
           (e.g. <code className="font-mono">https://pending</code>) if the worker only polls — it
           just must not be empty.
         </p>
-        {workerId && (
-          <div className="mt-4 rounded-md border border-success/40 bg-success/10 p-3 text-xs">
-            <p className="font-mono mb-2 font-semibold">
-              Worker registered. Use this WORKER_ID on your VPS:
-            </p>
-            <code className="block break-all rounded bg-background p-2 font-mono text-foreground">
-              {workerId}
-            </code>
-          </div>
-        )}
+        {workerId && <DeploySnippet workerId={workerId} />}
       </Card>
+
+      <DeployGuide />
 
       <Card className="p-0 overflow-hidden">
         <div className="border-b border-border px-4 py-3">

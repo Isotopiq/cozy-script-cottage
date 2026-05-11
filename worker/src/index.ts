@@ -121,8 +121,15 @@ async function executeRun(run: Run) {
   await writeFile(file, script.source);
 
   const { cmd, args } = cmdFor(script.language, file);
-  const env = {
-    ...process.env,
+  // SECURITY: Build an explicit allowlist environment for the child process.
+  // Never spread process.env — that would leak SUPABASE_SERVICE_ROLE_KEY,
+  // SUPABASE_URL, WORKER_ID, and any other host secrets into user scripts.
+  const env: NodeJS.ProcessEnv = {
+    PATH: process.env.PATH ?? "/usr/local/sbin:/usr/local/bin:/usr/sbin:/usr/bin:/sbin:/bin",
+    HOME: process.env.HOME ?? "/tmp",
+    TMPDIR: process.env.TMPDIR ?? "/tmp",
+    LANG: process.env.LANG ?? "C.UTF-8",
+    LC_ALL: process.env.LC_ALL ?? "C.UTF-8",
     RUN_ID: run.id,
     RUN_PARAMS: JSON.stringify(run.params ?? {}),
   };

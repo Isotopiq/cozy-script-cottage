@@ -1,6 +1,6 @@
 # Isotopiq Script Hub — Web app container for EasyPanel / any Docker host
-# Builds the TanStack Start frontend and serves it via wrangler (Cloudflare
-# Workers compatible runtime) on a single port.
+# Build the TanStack Start app with Bun, then run it with Node + wrangler 4.
+# Wrangler does NOT support the Bun runtime, so the runtime stage must be Node.
 
 FROM oven/bun:1 AS build
 WORKDIR /app
@@ -9,14 +9,21 @@ RUN bun install --frozen-lockfile || bun install
 COPY . .
 RUN bun run build
 
-FROM oven/bun:1
+FROM node:20-bookworm-slim AS runtime
 WORKDIR /app
 ENV NODE_ENV=production
-COPY --from=build /app /app
+RUN apt-get update && apt-get install -y --no-install-recommends wget ca-certificates \
+    && rm -rf /var/lib/apt/lists/*
 
-# Wrangler is bundled via @cloudflare/vite-plugin's deps; install runtime
-# wrangler separately so the image can serve the built worker.
-RUN bun add -d wrangler@^3
+# Copy only what wrangler needs to serve the built worker
+COPY --from=build /app/dist ./dist
+COPY --from=build /app/wrangler.jsonc ./wrangler.jsonc
+COPY --from=build /app/package.json ./package.json
+
+# Install wrangler 4 (compatible with the generated dist/server/wrangler.json)
+RUN npm install --no-save wrangler@^4
 
 EXPOSE 47823
-CMD ["bunx", "wrangler", "dev", "--ip", "0.0.0.0", "--port", "47823", "--local", "--no-show-interactive-dev-session"]
+CMD ["npx", "--yes", "wrangler@^4", "dev", \
+     "--ip", "0.0.0.0", "--port", "47823", \
+     "--local", "--no-show-interactive-dev-session"]

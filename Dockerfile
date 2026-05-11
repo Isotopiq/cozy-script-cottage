@@ -9,7 +9,7 @@ RUN bun install --frozen-lockfile || bun install
 COPY . .
 RUN bun run build
 
-FROM node:20-bookworm-slim AS runtime
+FROM node:22-bookworm-slim AS runtime
 WORKDIR /app
 ENV NODE_ENV=production
 RUN apt-get update && apt-get install -y --no-install-recommends wget ca-certificates \

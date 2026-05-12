@@ -31,6 +31,7 @@ import { Route as AuthenticatedAdminWorkersRouteImport } from './routes/_authent
 import { Route as AuthenticatedAdminUsersRouteImport } from './routes/_authenticated.admin.users'
 import { Route as AuthenticatedAdminStorageRouteImport } from './routes/_authenticated.admin.storage'
 import { Route as AuthenticatedAdminInvitesRouteImport } from './routes/_authenticated.admin.invites'
+import { Route as AuthenticatedAdminWorkersIndexRouteImport } from './routes/_authenticated.admin.workers.index'
 import { Route as AuthenticatedScriptsSlugEditRouteImport } from './routes/_authenticated.scripts.$slug.edit'
 import { Route as AuthenticatedAdminWorkersIdRouteImport } from './routes/_authenticated.admin.workers.$id'
 
@@ -148,6 +149,12 @@ const AuthenticatedAdminInvitesRoute =
     path: '/invites',
     getParentRoute: () => AuthenticatedAdminRoute,
   } as any)
+const AuthenticatedAdminWorkersIndexRoute =
+  AuthenticatedAdminWorkersIndexRouteImport.update({
+    id: '/',
+    path: '/',
+    getParentRoute: () => AuthenticatedAdminWorkersRoute,
+  } as any)
 const AuthenticatedScriptsSlugEditRoute =
   AuthenticatedScriptsSlugEditRouteImport.update({
     id: '/edit',
@@ -185,6 +192,7 @@ export interface FileRoutesByFullPath {
   '/scripts/': typeof AuthenticatedScriptsIndexRoute
   '/admin/workers/$id': typeof AuthenticatedAdminWorkersIdRoute
   '/scripts/$slug/edit': typeof AuthenticatedScriptsSlugEditRoute
+  '/admin/workers/': typeof AuthenticatedAdminWorkersIndexRoute
 }
 export interface FileRoutesByTo {
   '/forgot-password': typeof ForgotPasswordRoute
@@ -200,7 +208,6 @@ export interface FileRoutesByTo {
   '/admin/invites': typeof AuthenticatedAdminInvitesRoute
   '/admin/storage': typeof AuthenticatedAdminStorageRoute
   '/admin/users': typeof AuthenticatedAdminUsersRoute
-  '/admin/workers': typeof AuthenticatedAdminWorkersRouteWithChildren
   '/runs/$id': typeof AuthenticatedRunsIdRoute
   '/scripts/$slug': typeof AuthenticatedScriptsSlugRouteWithChildren
   '/scripts/new': typeof AuthenticatedScriptsNewRoute
@@ -209,6 +216,7 @@ export interface FileRoutesByTo {
   '/scripts': typeof AuthenticatedScriptsIndexRoute
   '/admin/workers/$id': typeof AuthenticatedAdminWorkersIdRoute
   '/scripts/$slug/edit': typeof AuthenticatedScriptsSlugEditRoute
+  '/admin/workers': typeof AuthenticatedAdminWorkersIndexRoute
 }
 export interface FileRoutesById {
   __root__: typeof rootRouteImport
@@ -236,6 +244,7 @@ export interface FileRoutesById {
   '/_authenticated/scripts/': typeof AuthenticatedScriptsIndexRoute
   '/_authenticated/admin/workers/$id': typeof AuthenticatedAdminWorkersIdRoute
   '/_authenticated/scripts/$slug/edit': typeof AuthenticatedScriptsSlugEditRoute
+  '/_authenticated/admin/workers/': typeof AuthenticatedAdminWorkersIndexRoute
 }
 export interface FileRouteTypes {
   fileRoutesByFullPath: FileRoutesByFullPath
@@ -263,6 +272,7 @@ export interface FileRouteTypes {
     | '/scripts/'
     | '/admin/workers/$id'
     | '/scripts/$slug/edit'
+    | '/admin/workers/'
   fileRoutesByTo: FileRoutesByTo
   to:
     | '/forgot-password'
@@ -278,7 +288,6 @@ export interface FileRouteTypes {
     | '/admin/invites'
     | '/admin/storage'
     | '/admin/users'
-    | '/admin/workers'
     | '/runs/$id'
     | '/scripts/$slug'
     | '/scripts/new'
@@ -287,6 +296,7 @@ export interface FileRouteTypes {
     | '/scripts'
     | '/admin/workers/$id'
     | '/scripts/$slug/edit'
+    | '/admin/workers'
   id:
     | '__root__'
     | '/_authenticated'
@@ -313,6 +323,7 @@ export interface FileRouteTypes {
     | '/_authenticated/scripts/'
     | '/_authenticated/admin/workers/$id'
     | '/_authenticated/scripts/$slug/edit'
+    | '/_authenticated/admin/workers/'
   fileRoutesById: FileRoutesById
 }
 export interface RootRouteChildren {
@@ -479,6 +490,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof AuthenticatedAdminInvitesRouteImport
       parentRoute: typeof AuthenticatedAdminRoute
     }
+    '/_authenticated/admin/workers/': {
+      id: '/_authenticated/admin/workers/'
+      path: '/'
+      fullPath: '/admin/workers/'
+      preLoaderRoute: typeof AuthenticatedAdminWorkersIndexRouteImport
+      parentRoute: typeof AuthenticatedAdminWorkersRoute
+    }
     '/_authenticated/scripts/$slug/edit': {
       id: '/_authenticated/scripts/$slug/edit'
       path: '/edit'
@@ -498,11 +516,13 @@ declare module '@tanstack/react-router' {
 
 interface AuthenticatedAdminWorkersRouteChildren {
   AuthenticatedAdminWorkersIdRoute: typeof AuthenticatedAdminWorkersIdRoute
+  AuthenticatedAdminWorkersIndexRoute: typeof AuthenticatedAdminWorkersIndexRoute
 }
 
 const AuthenticatedAdminWorkersRouteChildren: AuthenticatedAdminWorkersRouteChildren =
   {
     AuthenticatedAdminWorkersIdRoute: AuthenticatedAdminWorkersIdRoute,
+    AuthenticatedAdminWorkersIndexRoute: AuthenticatedAdminWorkersIndexRoute,
   }
 
 const AuthenticatedAdminWorkersRouteWithChildren =

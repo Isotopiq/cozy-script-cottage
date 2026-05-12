@@ -4,6 +4,13 @@
 -- =====================================================================
 
 -- ---------------------------------------------------------------------
+-- 0) Schema guards — backfill columns older databases may be missing.
+--    Safe on fresh installs (no-op) and on upgrades.
+-- ---------------------------------------------------------------------
+alter table public.profiles
+  add column if not exists disabled boolean not null default false;
+
+-- ---------------------------------------------------------------------
 -- 1) Tighten runs UPDATE policy (PUBLIC_DATA_EXPOSURE)
 --    Non-admin run owners must not be able to forge status/output/etc.
 --    Only admins (and the worker via service-role) may mutate runs.

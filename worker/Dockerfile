@@ -2,14 +2,14 @@
 # Builds a Node 20 image with python3, R, and bash available so scripts
 # of all three supported languages can be executed inside the container.
 
-FROM node:20-bookworm-slim AS build
+FROM node:22-bookworm-slim AS build
 WORKDIR /app
 COPY package.json tsconfig.json ./
 RUN npm install --no-audit --no-fund
 COPY src ./src
 RUN npm run build
 
-FROM node:20-bookworm-slim
+FROM node:22-bookworm-slim
 WORKDIR /app
 
 # Install language runtimes for executing user scripts.

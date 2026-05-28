@@ -316,9 +316,11 @@ async function loop() {
   setInterval(() => { void sampleMetrics(); }, METRICS_MS);
   await heartbeat();
   await sampleMetrics(); // prime prev snapshots
+  startReplManager(sb, WORKER_ID);
 
   const shutdown = async () => {
     console.log("Shutting down…");
+    await shutdownAllSessions(sb);
     await sb.from("workers").update({ status: "offline" }).eq("id", WORKER_ID);
     process.exit(0);
   };

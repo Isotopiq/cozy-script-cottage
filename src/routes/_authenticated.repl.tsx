@@ -154,7 +154,7 @@ function ReplPage() {
         { event: "UPDATE", schema: "public", table: "repl_sessions", filter: `id=eq.${sessionRow.id}` },
         (payload) => {
           const row = payload.new as SessionRow;
-          if (row.status === "running" && statusRef.current !== "running") {
+          if (row.status === "running" && (statusRef.current as string) !== "running") {
             statusRef.current = "running";
             setStatus("running");
             setBusy(false);
@@ -207,7 +207,7 @@ function ReplPage() {
     // 8. Input handler — buffer line, on Enter insert into repl_io
     bufferRef.current = "";
     term.onData(async (data) => {
-      if (statusRef.current !== "running") return;
+      if ((statusRef.current as string) !== "running") return;
       const code = data.charCodeAt(0);
       if (code === 13) {
         term.write("\r\n");
@@ -278,7 +278,7 @@ function ReplPage() {
             </SelectContent>
           </Select>
           {active ? (
-            <Button variant="destructive" onClick={() => void stop()} disabled={busy && statusRef.current !== "running"}>
+            <Button variant="destructive" onClick={() => void stop()} disabled={busy && (statusRef.current as string) !== "running"}>
               <Power className="mr-1 h-4 w-4" /> Stop session
             </Button>
           ) : (

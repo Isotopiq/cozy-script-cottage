@@ -278,7 +278,7 @@ function ReplPage() {
             </SelectContent>
           </Select>
           {active ? (
-            <Button variant="destructive" onClick={() => void stop()} disabled={busy && status !== "running"}>
+            <Button variant="destructive" onClick={() => void stop()} disabled={busy && statusRef.current !== "running"}>
               <Power className="mr-1 h-4 w-4" /> Stop session
             </Button>
           ) : (

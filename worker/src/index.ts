@@ -14,6 +14,7 @@ import { mkdtemp, writeFile, rm, readFile, statfs } from "node:fs/promises";
 import { tmpdir } from "node:os";
 import os from "node:os";
 import { join } from "node:path";
+import { startReplManager, shutdownAllSessions } from "./repl.js";
 
 const SUPABASE_URL = need("SUPABASE_URL");
 const SERVICE_ROLE = need("SUPABASE_SERVICE_ROLE_KEY");

@@ -191,7 +191,7 @@ function ReplPage() {
         .select("status")
         .eq("id", sessionRow.id)
         .maybeSingle();
-      if (data?.status === "running" && statusRef.current !== "running") {
+      if (data?.status === "running" && (statusRef.current as string) !== "running") {
         statusRef.current = "running";
         setStatus("running");
         setBusy(false);

@@ -204,7 +204,7 @@ async function manageSession(sb: SupabaseClient, workerId: string, session: Sess
 }
 
 async function claimNext(sb: SupabaseClient, workerId: string): Promise<Session | null> {
-  const { data: candidate } = await sb
+  const { data: candidate, error: selErr } = await sb
     .from("repl_sessions")
     .select("id, user_id, language")
     .eq("status", "requested")
@@ -212,6 +212,7 @@ async function claimNext(sb: SupabaseClient, workerId: string): Promise<Session 
     .order("created_at", { ascending: true })
     .limit(1)
     .maybeSingle();
+  if (selErr) { console.error("[repl] poll select failed:", selErr.message); return null; }
   if (!candidate) return null;
 
   const { data: claimed, error } = await sb
@@ -231,8 +232,47 @@ async function claimNext(sb: SupabaseClient, workerId: string): Promise<Session 
   return claimed as Session | null;
 }
 
+/**
+ * Startup recovery: sessions left behind by a previous worker process.
+ * - 'running' rows assigned to this worker have no live child → stop them.
+ * - 'requested' rows older than 10 minutes were never claimed → expire them,
+ *   so the one-active-per-user unique index stops blocking new sessions.
+ */
+async function recoverStaleSessions(sb: SupabaseClient, workerId: string) {
+  const { data: orphaned, error: e1 } = await sb
+    .from("repl_sessions")
+    .update({
+      status: "stopped",
+      stopped_at: new Date().toISOString(),
+      error_message: "worker restarted",
+    })
+    .eq("worker_id", workerId)
+    .eq("status", "running")
+    .select("id");
+  if (e1) console.error("[repl] orphan recovery failed:", e1.message);
+  else if (orphaned?.length) console.log(`[repl] recovered ${orphaned.length} orphaned running session(s)`);
+
+  const cutoff = new Date(Date.now() - 10 * 60_000).toISOString();
+  const { data: expired, error: e2 } = await sb
+    .from("repl_sessions")
+    .update({
+      status: "errored",
+      stopped_at: new Date().toISOString(),
+      error_message: "expired: no worker claimed the session in time",
+    })
+    .eq("status", "requested")
+    .lt("created_at", cutoff)
+    .select("id");
+  if (e2) console.error("[repl] expiry sweep failed:", e2.message);
+  else if (expired?.length) console.log(`[repl] expired ${expired.length} stale requested session(s)`);
+}
+
 export function startReplManager(sb: SupabaseClient, workerId: string) {
   console.log(`[repl] manager started · maxConcurrent=${MAX_CONCURRENT} · idle=${IDLE_TIMEOUT_MS}ms`);
+  void recoverStaleSessions(sb, workerId);
+  // Re-run the expiry sweep periodically so abandoned 'requested' rows never
+  // permanently block a user (unique one-active-per-user index).
+  setInterval(() => { void recoverStaleSessions(sb, workerId); }, 5 * 60_000);
 
   const tick = async () => {
     if (active.size >= MAX_CONCURRENT) return;

@@ -180,15 +180,17 @@ function ReplPage() {
     };
     setTimeout(() => { void backfill(); }, 300);
 
-    // 7. Poll status as a safety net (in case realtime is laggy)
+    // 7. Poll status as a safety net (in case realtime is laggy) + 30s timeout
+    let pollAttempts = 0;
     const statusPoll = setInterval(async () => {
       if (!sessionIdRef.current || statusRef.current === "running") {
         clearInterval(statusPoll);
         return;
       }
+      pollAttempts += 1;
       const { data } = await supabase
         .from("repl_sessions")
-        .select("status")
+        .select("status, error_message")
         .eq("id", sessionRow.id)
         .maybeSingle();
       if (data?.status === "running" && (statusRef.current as string) !== "running") {
@@ -200,6 +202,19 @@ function ReplPage() {
         clearInterval(statusPoll);
       } else if (data && (data.status === "stopped" || data.status === "errored")) {
         clearInterval(statusPoll);
+        if (data.status === "errored" && data.error_message) {
+          term.writeln(`\x1b[38;2;248;113;113m${data.error_message}\x1b[0m`);
+        }
+        void stop(true);
+      } else if (pollAttempts >= 30) {
+        clearInterval(statusPoll);
+        term.writeln("\x1b[38;2;248;113;113mNo worker claimed the session within 30s.\x1b[0m");
+        term.writeln("\x1b[2;37mCheck that the worker container is running the latest build (it should log '[repl] manager started' and '[repl …] claimed').\x1b[0m");
+        toast.error("REPL start timed out — no worker claimed the session");
+        await supabase
+          .from("repl_sessions")
+          .update({ stop_requested: true })
+          .eq("id", sessionRow.id);
         void stop(true);
       }
     }, 1000);
